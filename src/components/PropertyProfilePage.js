@@ -1,12 +1,13 @@
 /* eslint-disable */
 import { useState, useRef } from 'react';
-import { T, s } from '../theme';
+import { useTheme } from '../theme';
 import ICONS from '../icons';
 import { fmtCZK, fmtDate } from '../helpers';
 import { MAINTENANCE, REV_TYPES, DOC_CATEGORIES } from '../data/mockData';
 import { StatCard, SectionTitle, SubTitle } from './shared';
 
 export default function PropertyProfilePage({ propertyId, properties, onBack, documents, onAddDoc, onDeleteDoc, onUpdateProperty, onDeleteProperty }) {
+  const { T, s, isDark } = useTheme();
   const p = properties.find(x => x.id === propertyId);
   const [tab, setTab] = useState('overview');
   const [docFilter, setDocFilter] = useState('all');

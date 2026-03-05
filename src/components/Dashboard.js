@@ -4,12 +4,14 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
   ResponsiveContainer, PieChart, Pie, Cell,
 } from 'recharts';
-import { T, s, tooltipStyle } from '../theme';
+import { useTheme } from '../theme';
 import { fmtCZK, fmtDate, getRevColor, getRevLabel } from '../helpers';
 import { FINANCE_MONTHLY } from '../data/mockData';
 import { StatCard, SectionTitle, SubTitle } from './shared';
 
 export default function Dashboard({ properties, oblMatrix }) {
+  const { T, s } = useTheme();
+
   const allUnits = properties.flatMap(p => p.units);
   const totalUnits = allUnits.length;
   const occupied = allUnits.filter(u => u.status === 'occupied').length;
@@ -80,26 +82,26 @@ export default function Dashboard({ properties, oblMatrix }) {
       <div style={s.grid2}>
         <div style={s.card}>
           <SubTitle>Příjmy vs Výdaje</SubTitle>
-          <ResponsiveContainer width="100%" height={260}>
+          <ResponsiveContainer width="100%" height={280}>
             <BarChart data={FINANCE_MONTHLY} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke={T.border} />
-              <XAxis dataKey="month" tick={{ fill: T.textDim, fontSize: 11 }} axisLine={{ stroke: T.border }} />
-              <YAxis tick={{ fill: T.textDim, fontSize: 11 }} axisLine={{ stroke: T.border }} tickFormatter={v => `${v / 1000}k`} />
-              <Tooltip contentStyle={tooltipStyle} formatter={(v) => fmtCZK(v)} />
-              <Legend wrapperStyle={{ fontSize: 12, color: T.textDim }} />
-              <Bar dataKey="income" name="Příjmy" fill={T.green} radius={[4, 4, 0, 0]} />
-              <Bar dataKey="expenses" name="Výdaje" fill={T.red} radius={[4, 4, 0, 0]} />
+              <XAxis dataKey="month" tick={{ fill: T.textDim, fontSize: 12 }} axisLine={{ stroke: T.border }} />
+              <YAxis tick={{ fill: T.textDim, fontSize: 12 }} axisLine={{ stroke: T.border }} tickFormatter={v => `${v / 1000}k`} />
+              <Tooltip contentStyle={s.tooltip} formatter={(v) => fmtCZK(v)} />
+              <Legend wrapperStyle={{ fontSize: 13, color: T.textDim }} />
+              <Bar dataKey="income" name="Příjmy" fill={T.green} radius={[6, 6, 0, 0]} />
+              <Bar dataKey="expenses" name="Výdaje" fill={T.red} radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
         <div style={s.card}>
           <SubTitle>Struktura portfolia</SubTitle>
-          <ResponsiveContainer width="100%" height={260}>
+          <ResponsiveContainer width="100%" height={280}>
             <PieChart>
               <Pie data={portfolio} cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={3} dataKey="value" label={({ name, value }) => `${name} (${value})`}>
                 {portfolio.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
               </Pie>
-              <Tooltip contentStyle={tooltipStyle} />
+              <Tooltip contentStyle={s.tooltip} />
             </PieChart>
           </ResponsiveContainer>
         </div>

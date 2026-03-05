@@ -1,11 +1,12 @@
 /* eslint-disable */
 import React, { useState } from 'react';
-import { T, s } from '../theme';
+import { useTheme } from '../theme';
 import ICONS from '../icons';
 import { fmtCZK } from '../helpers';
 import { SectionTitle } from './shared';
 
 export default function PropertiesPage({ properties, onOpenProfile, onAddProperty }) {
+  const { T, s } = useTheme();
   const [showAdd, setShowAdd] = useState(false);
   const [addForm, setAddForm] = useState({ name: '', address: '', city: '', ownership: 'own', owner: '' });
 

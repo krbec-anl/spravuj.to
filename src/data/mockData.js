@@ -49,6 +49,13 @@ export const INITIAL_PROPERTIES = [
       { id: '2B', type: '2+1', area: 56, rent: 7500, tenant: null, status: 'vacant', contractEnd: null, deposit: 0, balance: 0 },
       { id: '3A', type: '2+kk', area: 48, rent: 6500, tenant: 'Jana Černá', status: 'occupied', contractEnd: '2027-06-30', deposit: 13000, balance: 0 },
       { id: '3B', type: '1+1', area: 36, rent: 5000, tenant: 'Tomáš Procházka', status: 'occupied', contractEnd: '2026-05-15', deposit: 10000, balance: -10000 },
+    ],
+    obligations: [
+      { id: 1, name: 'Revize komínu', category: 'revize', expiryDate: '2027-01-15', documentName: 'Revize komín 2025.pdf' },
+      { id: 2, name: 'Revize elektroinstalace', category: 'revize', expiryDate: '2026-04-10', documentName: 'Elektro revize 2025.pdf' },
+      { id: 3, name: 'Pojistná smlouva budovy', category: 'pojistka', expiryDate: '2026-03-15', documentName: 'Pojistka budova 2025.pdf' },
+      { id: 4, name: 'Požární bezpečnost', category: 'hygiena', expiryDate: '2025-12-01', documentName: null },
+      { id: 5, name: 'Stavební povolení - přístavba', category: 'povoleni', expiryDate: '2028-06-30', documentName: 'Stavební povolení.pdf' },
     ]
   },
   {
@@ -59,6 +66,11 @@ export const INITIAL_PROPERTIES = [
       { id: '2', type: '2+kk', area: 45, rent: 6500, tenant: 'Martin Kučera', status: 'occupied', contractEnd: '2026-09-30', deposit: 13000, balance: -13000 },
       { id: '3', type: '3+1', area: 68, rent: 8500, tenant: 'Lucie Pokorná', status: 'occupied', contractEnd: '2027-04-15', deposit: 17000, balance: 0 },
       { id: '4', type: '1+1', area: 34, rent: 5000, tenant: null, status: 'vacant', contractEnd: null, deposit: 0, balance: 0 },
+    ],
+    obligations: [
+      { id: 6, name: 'Revize hasicích přístrojů', category: 'revize', expiryDate: '2026-08-12', documentName: 'HP revize 2025.pdf' },
+      { id: 7, name: 'Smlouva o správě budovy', category: 'smlouva', expiryDate: '2026-05-20', documentName: 'Správcovská smlouva.pdf' },
+      { id: 8, name: 'Pojištění nemovitosti', category: 'pojistka', expiryDate: '2025-11-15', documentName: null },
     ]
   },
   {
@@ -73,6 +85,11 @@ export const INITIAL_PROPERTIES = [
       { id: '3B', type: '1+1', area: 38, rent: 5500, tenant: 'Ondřej Fiala', status: 'occupied', contractEnd: '2026-10-31', deposit: 11000, balance: 0 },
       { id: '4A', type: '2+1', area: 53, rent: 7000, tenant: 'Barbora Benešová', status: 'occupied', contractEnd: '2027-05-31', deposit: 14000, balance: 0 },
       { id: '4B', type: '3+kk', area: 65, rent: 8500, tenant: 'Pavel Šťastný', status: 'occupied', contractEnd: '2026-04-15', deposit: 17000, balance: -17000 },
+    ],
+    obligations: [
+      { id: 9, name: 'Revize hromosvodu', category: 'revize', expiryDate: '2026-09-20', documentName: 'Hromosvod revize 2024.pdf' },
+      { id: 10, name: 'Pojištění odpovědnosti', category: 'pojistka', expiryDate: '2026-06-01', documentName: 'Pojistka odpovědnost.pdf' },
+      { id: 11, name: 'Revize plynových rozvodů', category: 'revize', expiryDate: '2026-03-28', documentName: null },
     ]
   },
   {
@@ -84,6 +101,11 @@ export const INITIAL_PROPERTIES = [
       { id: '3', type: '3+1', area: 70, rent: 9000, tenant: 'Monika Němcová', status: 'occupied', contractEnd: '2027-01-15', deposit: 18000, balance: 0 },
       { id: '4', type: '1+1', area: 35, rent: 5000, tenant: 'Lukáš Staněk', status: 'occupied', contractEnd: '2026-06-15', deposit: 10000, balance: -5000 },
       { id: '5', type: '2+1', area: 55, rent: 7500, tenant: null, status: 'vacant', contractEnd: null, deposit: 0, balance: 0 },
+    ],
+    obligations: [
+      { id: 12, name: 'Revize kotle', category: 'revize', expiryDate: '2026-11-30', documentName: 'Revize kotle 2025.pdf' },
+      { id: 13, name: 'Energetický audit', category: 'jine', expiryDate: '2028-01-15', documentName: 'Energetický audit.pdf' },
+      { id: 14, name: 'Hyg. kontrola společ. prostor', category: 'hygiena', expiryDate: '2025-10-01', documentName: null },
     ]
   },
   {
@@ -98,6 +120,12 @@ export const INITIAL_PROPERTIES = [
       { id: '3B', type: '2+kk', area: 47, rent: 6500, tenant: 'Markéta Sedláčková', status: 'occupied', contractEnd: '2026-09-30', deposit: 13000, balance: 0 },
       { id: '4A', type: '3+kk', area: 62, rent: 8500, tenant: 'Filip Blažek', status: 'occupied', contractEnd: '2027-04-30', deposit: 17000, balance: 0 },
       { id: '4B', type: '1+kk', area: 30, rent: 4500, tenant: 'Veronika Kratochvílová', status: 'occupied', contractEnd: '2026-11-15', deposit: 9000, balance: -9000 },
+    ],
+    obligations: [
+      { id: 15, name: 'Správcovská smlouva', category: 'smlouva', expiryDate: '2027-01-15', documentName: 'Správcovská smlouva Novák.pdf' },
+      { id: 16, name: 'Revize elektroinstalace', category: 'revize', expiryDate: '2026-07-22', documentName: 'Elektro revize 2025.pdf' },
+      { id: 17, name: 'Pojistná smlouva', category: 'pojistka', expiryDate: '2026-04-15', documentName: 'Pojistka Komenského.pdf' },
+      { id: 18, name: 'Protipožární kontrola', category: 'hygiena', expiryDate: '2025-09-30', documentName: null },
     ]
   },
   {
@@ -113,6 +141,11 @@ export const INITIAL_PROPERTIES = [
       { id: '3A', type: '2+kk', area: 48, rent: 6500, tenant: 'Ivana Vaňková', status: 'occupied', contractEnd: '2027-01-31', deposit: 13000, balance: 0 },
       { id: '3B', type: '3+kk', area: 64, rent: 8500, tenant: 'Marek Šimůnek', status: 'occupied', contractEnd: '2026-04-30', deposit: 17000, balance: -8500 },
       { id: '3C', type: '2+1', area: 52, rent: 7000, tenant: 'Zuzana Holubová', status: 'occupied', contractEnd: '2027-09-15', deposit: 14000, balance: 0 },
+    ],
+    obligations: [
+      { id: 19, name: 'Správcovská smlouva', category: 'smlouva', expiryDate: '2026-11-01', documentName: 'Správcovská smlouva Dvořáková.pdf' },
+      { id: 20, name: 'Revize komínu', category: 'revize', expiryDate: '2026-05-18', documentName: 'Komín revize 2025.pdf' },
+      { id: 21, name: 'Stavební povolení - výtah', category: 'povoleni', expiryDate: '2027-12-31', documentName: 'Stavební povolení výtah.pdf' },
     ]
   },
 ];

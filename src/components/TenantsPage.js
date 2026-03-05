@@ -1,10 +1,11 @@
 /* eslint-disable */
 import React, { useState, useMemo } from 'react';
-import { T, s } from '../theme';
+import { useTheme } from '../theme';
 import { fmtCZK, fmtDate, getAllTenants } from '../helpers';
 import { SectionTitle } from './shared';
 
 export default function TenantsPage({ properties }) {
+  const { T, s } = useTheme();
   const [search, setSearch] = useState('');
   const tenants = useMemo(() => getAllTenants(properties), [properties]);
   const filtered = tenants.filter(t =>
@@ -15,7 +16,7 @@ export default function TenantsPage({ properties }) {
   return (
     <div className="fade-in">
       <SectionTitle>Nájemníci</SectionTitle>
-      <div style={{ marginBottom: 16 }}>
+      <div style={{ marginBottom: 20 }}>
         <input placeholder="Hledat nájemníka nebo nemovitost..." value={search}
           onChange={e => setSearch(e.target.value)} style={{ ...s.input, maxWidth: 400 }} />
       </div>
@@ -53,7 +54,7 @@ export default function TenantsPage({ properties }) {
           </table>
         </div>
       </div>
-      <div style={{ color: T.textDim, fontSize: 12, marginTop: 8 }}>Celkem: {filtered.length} nájemníků</div>
+      <div style={{ color: T.textDim, fontSize: 13, marginTop: 10 }}>Celkem: {filtered.length} nájemníků</div>
     </div>
   );
 }

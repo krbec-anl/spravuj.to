@@ -1,10 +1,11 @@
 /* eslint-disable */
 import React from 'react';
-import { T, s } from '../theme';
+import { useTheme } from '../theme';
 import { fmtCZK } from '../helpers';
 import { SectionTitle } from './shared';
 
 export default function OwnerPortalPage({ properties }) {
+  const { T, s, isDark } = useTheme();
   const foreign = properties.filter(p => p.ownership === 'foreign');
 
   return (
@@ -33,19 +34,19 @@ export default function OwnerPortalPage({ properties }) {
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12, marginBottom: 16 }}>
-              <div style={{ background: T.bg, borderRadius: 8, padding: 12 }}>
+              <div style={{ background: isDark ? T.bg : T.border + '33', borderRadius: 8, padding: 12 }}>
                 <div style={{ fontSize: 11, color: T.textMuted }}>Obsazenost</div>
                 <div style={{ fontSize: 20, fontWeight: 700, color: T.green }}>{occ}/{p.totalUnits}</div>
               </div>
-              <div style={{ background: T.bg, borderRadius: 8, padding: 12 }}>
+              <div style={{ background: isDark ? T.bg : T.border + '33', borderRadius: 8, padding: 12 }}>
                 <div style={{ fontSize: 11, color: T.textMuted }}>Příjem/měs</div>
                 <div style={{ fontSize: 20, fontWeight: 700, color: T.cyan }}>{fmtCZK(income)}</div>
               </div>
-              <div style={{ background: T.bg, borderRadius: 8, padding: 12 }}>
+              <div style={{ background: isDark ? T.bg : T.border + '33', borderRadius: 8, padding: 12 }}>
                 <div style={{ fontSize: 11, color: T.textMuted }}>Správcovský popl.</div>
                 <div style={{ fontSize: 20, fontWeight: 700, color: T.purple }}>{fmtCZK(fee)}</div>
               </div>
-              <div style={{ background: T.bg, borderRadius: 8, padding: 12 }}>
+              <div style={{ background: isDark ? T.bg : T.border + '33', borderRadius: 8, padding: 12 }}>
                 <div style={{ fontSize: 11, color: T.textMuted }}>Čistý výnos</div>
                 <div style={{ fontSize: 20, fontWeight: 700 }}>{fmtCZK(income - fee)}</div>
               </div>

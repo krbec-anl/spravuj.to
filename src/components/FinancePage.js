@@ -4,12 +4,14 @@ import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
   ResponsiveContainer,
 } from 'recharts';
-import { T, s, tooltipStyle } from '../theme';
+import { useTheme } from '../theme';
 import { fmtCZK } from '../helpers';
 import { FINANCE_MONTHLY } from '../data/mockData';
 import { StatCard, SectionTitle, SubTitle } from './shared';
 
 export default function FinancePage({ properties }) {
+  const { T, s } = useTheme();
+
   const totalIncome = FINANCE_MONTHLY[FINANCE_MONTHLY.length - 1].income;
   const totalExpenses = FINANCE_MONTHLY[FINANCE_MONTHLY.length - 1].expenses;
   const net = totalIncome - totalExpenses;
@@ -49,10 +51,10 @@ export default function FinancePage({ properties }) {
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke={T.border} />
-              <XAxis dataKey="month" tick={{ fill: T.textDim, fontSize: 11 }} axisLine={{ stroke: T.border }} />
-              <YAxis tick={{ fill: T.textDim, fontSize: 11 }} axisLine={{ stroke: T.border }} tickFormatter={v => `${v / 1000}k`} />
-              <Tooltip contentStyle={tooltipStyle} formatter={(v) => fmtCZK(v)} />
-              <Legend wrapperStyle={{ fontSize: 12 }} />
+              <XAxis dataKey="month" tick={{ fill: T.textDim, fontSize: 12 }} axisLine={{ stroke: T.border }} />
+              <YAxis tick={{ fill: T.textDim, fontSize: 12 }} axisLine={{ stroke: T.border }} tickFormatter={v => `${v / 1000}k`} />
+              <Tooltip contentStyle={s.tooltip} formatter={(v) => fmtCZK(v)} />
+              <Legend wrapperStyle={{ fontSize: 13 }} />
               <Area type="monotone" dataKey="income" name="Příjmy" stroke={T.green} fillOpacity={1} fill="url(#gInc)" />
               <Area type="monotone" dataKey="expenses" name="Výdaje" stroke={T.red} fillOpacity={1} fill="url(#gExp)" />
             </AreaChart>

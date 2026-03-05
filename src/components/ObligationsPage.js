@@ -1,12 +1,13 @@
 /* eslint-disable */
 import React, { useState, useCallback, useMemo, useRef } from 'react';
-import { T, s } from '../theme';
+import { useTheme } from '../theme';
 import ICONS from '../icons';
 import { fmtDate, getRevColor, getRevLabel } from '../helpers';
 import { OBL_OBJECTS, REV_TYPES } from '../data/mockData';
 import { SectionTitle } from './shared';
 
-export default function ObligationsPage({ matrix, onUpdateCell }) {
+export default function ObligationsPage({ matrix, onUpdateCell, onOpenPropertyProfile }) {
+  const { T, s, isDark } = useTheme();
   const [view, setView] = useState('matrix');
   const [detail, setDetail] = useState(null); // { object, revType }
 
@@ -174,7 +175,7 @@ export default function ObligationsPage({ matrix, onUpdateCell }) {
                     type="date"
                     value={panelDeadline}
                     onChange={e => setPanelDeadline(e.target.value)}
-                    style={{ ...s.input, width: 'auto', minWidth: 180, colorScheme: 'dark' }}
+                    style={{ ...s.input, width: 'auto', minWidth: 180, colorScheme: isDark ? 'dark' : 'light' }}
                   />
                   {panelDeadline && (
                     <span style={{ ...s.tag(getRevColor(panelDeadline)), fontSize: 12, padding: '4px 10px' }}>
@@ -406,7 +407,14 @@ export default function ObligationsPage({ matrix, onUpdateCell }) {
               <tbody>
                 {OBL_OBJECTS.map((obj, oi) => (
                   <tr key={oi}>
-                    <td style={{ ...s.td, fontWeight: 600, position: 'sticky', left: 0, background: T.card, zIndex: 1, whiteSpace: 'nowrap', fontSize: 12 }}>{obj}</td>
+                    <td style={{ ...s.td, fontWeight: 600, position: 'sticky', left: 0, background: T.card, zIndex: 1, whiteSpace: 'nowrap', fontSize: 12 }}>
+                      <span
+                        onClick={(e) => { e.stopPropagation(); if (onOpenPropertyProfile) onOpenPropertyProfile(obj); }}
+                        style={{ cursor: 'pointer', transition: 'color .15s' }}
+                        onMouseEnter={e => e.currentTarget.style.color = T.accent}
+                        onMouseLeave={e => e.currentTarget.style.color = T.text}
+                      >{obj}</span>
+                    </td>
                     {REV_TYPES.map((rt, ti) => {
                       const cell = getCell(obj, rt.name);
                       const d = cell.deadline;
