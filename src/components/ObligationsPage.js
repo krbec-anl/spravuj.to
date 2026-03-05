@@ -3,34 +3,50 @@ import React, { useState, useCallback, useMemo, useRef } from 'react';
 import { useTheme } from '../theme';
 import ICONS from '../icons';
 import { fmtDate, getRevColor, getRevLabel } from '../helpers';
-import { OBL_OBJECTS, REV_TYPES } from '../data/mockData';
+import { OBL_OBJECTS } from '../data/mockData';
 import { SectionTitle } from './shared';
 
-export default function ObligationsPage({ matrix, onUpdateCell, onOpenPropertyProfile }) {
+const FREQUENCY_OPTIONS = [
+  { value: '', label: 'Neuvedeno' },
+  { value: '1\u00d7m\u011bs\u00edc', label: '1\u00d7m\u011bs\u00edc' },
+  { value: '1\u00d7rok', label: '1\u00d7rok' },
+  { value: '1\u00d72roky', label: '1\u00d72roky' },
+  { value: '1\u00d73roky', label: '1\u00d73roky' },
+  { value: '1\u00d74roky', label: '1\u00d74roky' },
+  { value: '1\u00d75let', label: '1\u00d75let' },
+];
+
+export default function ObligationsPage({ matrix, onUpdateCell, onOpenPropertyProfile, revisionTypes, onAddRevType, onDeleteRevType }) {
   const { T, s, isDark } = useTheme();
   const [view, setView] = useState('matrix');
-  const [detail, setDetail] = useState(null); // { object, revType }
+  const [detail, setDetail] = useState(null);
 
-  // Panel edit state (local until Save)
+  // Panel edit state
   const [panelDeadline, setPanelDeadline] = useState('');
   const [panelCompany, setPanelCompany] = useState('');
   const [panelDocs, setPanelDocs] = useState([]);
+  const [panelNotApplicable, setPanelNotApplicable] = useState(false);
   const [uploadName, setUploadName] = useState('');
   const [showUpload, setShowUpload] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const fileRef = useRef(null);
 
+  // Add/delete column modals
+  const [showAddCol, setShowAddCol] = useState(false);
+  const [addColForm, setAddColForm] = useState({ name: '', frequency: '', supplier: '' });
+  const [confirmDeleteCol, setConfirmDeleteCol] = useState(null);
+
   const getCell = useCallback((obj, rt) => {
-    return matrix[obj]?.[rt] || { deadline: null, docs: [], company: '' };
+    return matrix[obj]?.[rt] || { deadline: null, docs: [], company: '', notApplicable: false };
   }, [matrix]);
 
-  // Open sliding panel
   const openDetail = (obj, rt) => {
     const cell = getCell(obj, rt);
     setDetail({ object: obj, revType: rt });
     setPanelDeadline(cell.deadline || '');
     setPanelCompany(cell.company || '');
     setPanelDocs([...cell.docs]);
+    setPanelNotApplicable(!!cell.notApplicable);
     setShowUpload(false);
     setShowHistory(false);
     setUploadName('');
@@ -43,44 +59,55 @@ export default function ObligationsPage({ matrix, onUpdateCell, onOpenPropertyPr
     setShowHistory(false);
   };
 
-  // Save all panel changes
   const handleSave = () => {
     if (!detail) return;
     onUpdateCell(detail.object, detail.revType, {
-      deadline: panelDeadline || null,
-      docs: panelDocs,
+      deadline: panelNotApplicable ? null : (panelDeadline || null),
+      docs: panelNotApplicable ? [] : panelDocs,
       company: panelCompany,
+      notApplicable: panelNotApplicable,
     });
     closeDetail();
   };
 
-  // Upload new doc (into local panel state)
   const handleUploadDoc = () => {
     if (!detail || !uploadName.trim()) return;
-    const newDoc = { id: 'rd' + Date.now(), name: uploadName, date: new Date().toISOString().split('T')[0], size: '— KB' };
+    const newDoc = { id: 'rd' + Date.now(), name: uploadName, date: new Date().toISOString().split('T')[0], size: '\u2014 KB' };
     setPanelDocs([newDoc, ...panelDocs]);
     setUploadName('');
     setShowUpload(false);
   };
 
-  // Delete a specific doc (from local panel state)
   const handleDeleteDoc = (docId) => {
     setPanelDocs(panelDocs.filter(d => d.id !== docId));
+  };
+
+  const handleAddCol = () => {
+    if (!addColForm.name.trim()) return;
+    if (revisionTypes.some(rt => rt.name === addColForm.name.trim())) return;
+    onAddRevType({ name: addColForm.name.trim(), frequency: addColForm.frequency, supplier: addColForm.supplier.trim() });
+    setAddColForm({ name: '', frequency: '', supplier: '' });
+    setShowAddCol(false);
+  };
+
+  const handleDeleteCol = (name) => {
+    onDeleteRevType(name);
+    setConfirmDeleteCol(null);
   };
 
   // Build flat list for list/timeline views
   const allItems = useMemo(() => {
     const items = [];
     OBL_OBJECTS.forEach(obj => {
-      REV_TYPES.forEach(rt => {
+      revisionTypes.forEach(rt => {
         const cell = matrix[obj]?.[rt.name];
-        if (cell?.deadline) {
-          items.push({ object: obj, type: rt.name, supplier: rt.supplier, period: rt.period, date: cell.deadline, docs: cell.docs, company: cell.company });
+        if (cell?.deadline && !cell?.notApplicable) {
+          items.push({ object: obj, type: rt.name, supplier: rt.supplier, period: rt.frequency, date: cell.deadline, docs: cell.docs, company: cell.company });
         }
       });
     });
     return items.sort((a, b) => new Date(a.date) - new Date(b.date));
-  }, [matrix]);
+  }, [matrix, revisionTypes]);
 
   const timeline = useMemo(() => {
     const groups = {};
@@ -92,10 +119,24 @@ export default function ObligationsPage({ matrix, onUpdateCell, onOpenPropertyPr
     return Object.entries(groups).sort((a, b) => a[0].localeCompare(b[0]));
   }, [allItems]);
 
-  // -------- SLIDING PANEL --------
+  // ---- MODAL HELPER ----
+  const Modal = ({ children, onClose, width = 500 }) => (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
+      onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div style={{ ...s.card, maxWidth: width, width: '100%', border: `1px solid ${T.accent}44`, padding: 28, marginBottom: 0 }}>
+        {children}
+      </div>
+    </div>
+  );
+
+  const FieldLabel = ({ children }) => (
+    <label style={{ fontSize: 11, fontWeight: 700, color: T.textMuted, textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: 8 }}>{children}</label>
+  );
+
+  // ---- SLIDING PANEL ----
   const currentDoc = panelDocs[0] || null;
   const historyDocs = panelDocs.slice(1);
-  const detailRt = detail ? REV_TYPES.find(r => r.name === detail.revType) : null;
+  const detailRt = detail ? revisionTypes.find(r => r.name === detail.revType) : null;
   const lastRevisionDate = currentDoc?.date || null;
 
   const SlidingPanel = (
@@ -103,7 +144,6 @@ export default function ObligationsPage({ matrix, onUpdateCell, onOpenPropertyPr
       position: 'fixed', inset: 0, zIndex: 1000,
       pointerEvents: detail ? 'auto' : 'none',
     }}>
-      {/* Backdrop */}
       <div
         onClick={closeDetail}
         style={{
@@ -113,11 +153,9 @@ export default function ObligationsPage({ matrix, onUpdateCell, onOpenPropertyPr
           transition: 'all .3s ease',
         }}
       />
-
-      {/* Panel */}
       <div style={{
         position: 'absolute', top: 0, right: 0, bottom: 0,
-        width: 480, maxWidth: '100vw',
+        width: 500, maxWidth: '100vw',
         background: T.sidebar,
         borderLeft: `1px solid ${T.border}`,
         transform: detail ? 'translateX(0)' : 'translateX(100%)',
@@ -131,14 +169,14 @@ export default function ObligationsPage({ matrix, onUpdateCell, onOpenPropertyPr
             <div style={{
               padding: '20px 24px 16px',
               borderBottom: `1px solid ${T.border}`,
-              background: panelDeadline ? getRevColor(panelDeadline) + '08' : 'transparent',
+              background: panelNotApplicable ? T.textMuted + '08' : (panelDeadline ? getRevColor(panelDeadline) + '08' : 'transparent'),
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <div>
                   <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 4 }}>{detail.object}</div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                     <span style={{ fontSize: 14, color: T.accent, fontWeight: 600 }}>{detail.revType}</span>
-                    {detailRt?.period && <span style={s.tag(T.textMuted)}>{detailRt.period}</span>}
+                    {detailRt?.frequency && <span style={s.tag(T.textMuted)}>{detailRt.frequency}</span>}
                   </div>
                 </div>
                 <button onClick={closeDetail} style={{
@@ -152,220 +190,247 @@ export default function ObligationsPage({ matrix, onUpdateCell, onOpenPropertyPr
             {/* Scrollable body */}
             <div style={{ padding: '20px 24px', overflowY: 'auto', flex: 1 }}>
 
-              {/* Last revision date (derived from docs) */}
-              <div style={{ marginBottom: 20 }}>
-                <label style={{ fontSize: 11, fontWeight: 700, color: T.textMuted, textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: 8 }}>
-                  Datum poslední revize
-                </label>
-                <div style={{
-                  ...s.input, background: T.card, cursor: 'default',
-                  color: lastRevisionDate ? T.text : T.textMuted,
-                }}>
-                  {lastRevisionDate ? fmtDate(lastRevisionDate) : 'Žádný dokument — datum neznámé'}
-                </div>
-              </div>
-
-              {/* Next revision date (editable) */}
-              <div style={{ marginBottom: 20 }}>
-                <label style={{ fontSize: 11, fontWeight: 700, color: T.textMuted, textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: 8 }}>
-                  Datum příští revize
-                </label>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <input
-                    type="date"
-                    value={panelDeadline}
-                    onChange={e => setPanelDeadline(e.target.value)}
-                    style={{ ...s.input, width: 'auto', minWidth: 180, colorScheme: isDark ? 'dark' : 'light' }}
-                  />
-                  {panelDeadline && (
-                    <span style={{ ...s.tag(getRevColor(panelDeadline)), fontSize: 12, padding: '4px 10px' }}>
-                      {getRevLabel(panelDeadline)}
-                    </span>
-                  )}
-                  {panelDeadline && (
-                    <button onClick={() => setPanelDeadline('')} style={{
-                      background: 'none', border: 'none', color: T.red, cursor: 'pointer',
-                      fontSize: 12, display: 'flex', alignItems: 'center', gap: 3, padding: '4px 6px',
-                    }}>
-                      {ICONS.trash}
-                    </button>
-                  )}
-                </div>
-                {!panelDeadline && (
-                  <div style={{ fontSize: 12, color: T.textMuted, fontStyle: 'italic', marginTop: 6 }}>Nenastaveno</div>
-                )}
-              </div>
-
-              {/* Company */}
-              <div style={{ marginBottom: 24 }}>
-                <label style={{ fontSize: 11, fontWeight: 700, color: T.textMuted, textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: 8 }}>
-                  Firma
-                </label>
-                <input
-                  value={panelCompany}
-                  onChange={e => setPanelCompany(e.target.value)}
-                  placeholder="např. Enetep, p.Šavel..."
-                  style={s.input}
-                />
-              </div>
-
-              {/* Divider */}
-              <div style={{ height: 1, background: T.border, marginBottom: 20 }} />
-
-              {/* Current document */}
-              <div style={{ marginBottom: 16 }}>
-                <label style={{ fontSize: 11, fontWeight: 700, color: T.textMuted, textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: 10 }}>
-                  Dokument
-                </label>
-
-                {currentDoc ? (
-                  <div style={{
-                    background: T.accent + '0d', border: `1px solid ${T.accent}22`, borderRadius: 10, padding: 14,
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}>
-                        <span style={{ color: T.accent, display: 'flex', flexShrink: 0 }}>{ICONS.doc}</span>
-                        <div style={{ minWidth: 0 }}>
-                          <div style={{ fontSize: 13, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{currentDoc.name}</div>
-                          <div style={{ fontSize: 11, color: T.textMuted }}>{fmtDate(currentDoc.date)} · {currentDoc.size}</div>
-                        </div>
-                      </div>
-                      <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
-                        <button style={{
-                          background: T.accent + '22', color: T.accent, border: 'none',
-                          borderRadius: 6, padding: '5px 8px', cursor: 'pointer', display: 'flex',
-                        }} title="Zobrazit">{ICONS.eye}</button>
-                        <button style={{
-                          background: T.green + '22', color: T.green, border: 'none',
-                          borderRadius: 6, padding: '5px 8px', cursor: 'pointer', display: 'flex',
-                        }} title="Stáhnout">{ICONS.download}</button>
-                        <button onClick={() => handleDeleteDoc(currentDoc.id)} style={{
-                          background: T.red + '22', color: T.red, border: 'none',
-                          borderRadius: 6, padding: '5px 8px', cursor: 'pointer', display: 'flex',
-                        }} title="Smazat">{ICONS.trash}</button>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div style={{ color: T.textMuted, fontSize: 13, fontStyle: 'italic', marginBottom: 4 }}>
-                    Žádný dokument
-                  </div>
-                )}
-              </div>
-
-              {/* Upload new doc */}
-              {!showUpload ? (
-                <button onClick={() => setShowUpload(true)} style={{
-                  ...s.btn(false), display: 'flex', alignItems: 'center', gap: 6,
-                  border: `1px dashed ${T.accent}44`, color: T.accent, width: '100%', justifyContent: 'center',
-                  padding: '10px 16px', marginBottom: 16,
-                }}
-                  onMouseEnter={e => { e.currentTarget.style.background = T.accent + '11'; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
-                >
-                  {ICONS.upload} {currentDoc ? 'Nahrát nový (stávající → historie)' : 'Nahrát dokument'}
-                </button>
-              ) : (
-                <div style={{
-                  background: T.bg, borderRadius: 10, padding: 14, marginBottom: 16,
-                  border: `1px solid ${T.accent}33`,
-                }}>
-                  <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 8 }}>Nahrát nový dokument</div>
-                  {currentDoc && (
-                    <div style={{
-                      fontSize: 11, color: T.orange, marginBottom: 8, padding: '6px 8px',
-                      background: T.orange + '11', borderRadius: 6,
-                    }}>
-                      Stávající „{currentDoc.name}" se přesune do historie.
-                    </div>
-                  )}
-                  <div style={{ marginBottom: 10 }}>
-                    <input
-                      value={uploadName}
-                      onChange={e => setUploadName(e.target.value)}
-                      placeholder={`např. Revize ${detail.revType} ${new Date().getFullYear()}.pdf`}
-                      style={s.input}
-                      autoFocus
-                    />
-                  </div>
-                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                    <button onClick={() => fileRef.current?.click()} style={{
-                      ...s.btn(false), display: 'flex', alignItems: 'center', gap: 5, fontSize: 12,
-                      border: `1px dashed ${T.border}`,
-                    }}>
-                      {ICONS.folder} Soubor
-                    </button>
-                    <input ref={fileRef} type="file" style={{ display: 'none' }}
-                      onChange={e => {
-                        const file = e.target.files?.[0];
-                        if (file && !uploadName) setUploadName(file.name);
-                      }}
-                    />
-                    <div style={{ flex: 1 }} />
-                    <button onClick={() => { setShowUpload(false); setUploadName(''); }} style={{ ...s.btn(false), fontSize: 12 }}>Zrušit</button>
-                    <button onClick={handleUploadDoc} style={{
-                      ...s.btn(true), fontSize: 12, opacity: uploadName.trim() ? 1 : 0.5,
-                    }}>Nahrát</button>
-                  </div>
-                </div>
-              )}
-
-              {/* History */}
-              {historyDocs.length > 0 && (
+              {/* N/A toggle */}
+              <div style={{
+                marginBottom: 20, padding: 14, borderRadius: 10,
+                background: panelNotApplicable ? T.orange + '11' : T.bg,
+                border: `1px solid ${panelNotApplicable ? T.orange + '33' : T.border}`,
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
+              }}>
                 <div>
-                  <button onClick={() => setShowHistory(!showHistory)} style={{
-                    background: 'none', border: 'none', cursor: 'pointer', padding: 0,
-                    display: 'flex', alignItems: 'center', gap: 6, width: '100%',
-                    fontSize: 12, fontWeight: 700, color: T.textDim, textTransform: 'uppercase', letterSpacing: '0.5px',
-                    marginBottom: showHistory ? 10 : 0,
-                  }}>
-                    <span style={{ transition: 'transform .2s', transform: showHistory ? 'rotate(90deg)' : 'rotate(0)', display: 'inline-block' }}>&#9654;</span>
-                    Historie ({historyDocs.length})
-                  </button>
-                  {showHistory && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                      {historyDocs.map(doc => (
-                        <div key={doc.id} style={{
-                          background: T.bg, borderRadius: 8, padding: '8px 12px',
-                          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
-                          border: `1px solid ${T.border}`,
+                  <div style={{ fontSize: 13, fontWeight: 600, color: panelNotApplicable ? T.orange : T.text }}>Nevztahuje se na tuto nemovitost</div>
+                  <div style={{ fontSize: 11, color: T.textMuted, marginTop: 2 }}>Pokud je zapnuto, bu\u0148ka bude zob\u0159\u0065\u007aena jako N/A</div>
+                </div>
+                <button
+                  onClick={() => setPanelNotApplicable(!panelNotApplicable)}
+                  style={{
+                    width: 48, height: 26, borderRadius: 13, border: 'none', cursor: 'pointer',
+                    background: panelNotApplicable ? T.orange : T.border,
+                    position: 'relative', transition: 'background .2s', flexShrink: 0,
+                  }}
+                >
+                  <div style={{
+                    width: 20, height: 20, borderRadius: '50%', background: '#fff',
+                    position: 'absolute', top: 3, transition: 'left .2s',
+                    left: panelNotApplicable ? 25 : 3,
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                  }} />
+                </button>
+              </div>
+
+              {panelNotApplicable ? (
+                <div style={{ textAlign: 'center', padding: 40, color: T.textMuted }}>
+                  <div style={{ fontSize: 32, marginBottom: 8, opacity: 0.4 }}>N/A</div>
+                  <div style={{ fontSize: 13 }}>Tato revize se nevztahuje na objekt {detail.object}</div>
+                </div>
+              ) : (
+                <>
+                  {/* Last revision date */}
+                  <div style={{ marginBottom: 20 }}>
+                    <FieldLabel>Datum posledn\u00ed revize</FieldLabel>
+                    <div style={{
+                      ...s.input, background: T.card, cursor: 'default',
+                      color: lastRevisionDate ? T.text : T.textMuted,
+                    }}>
+                      {lastRevisionDate ? fmtDate(lastRevisionDate) : '\u017d\u00e1dn\u00fd dokument \u2014 datum nezn\u00e1m\u00e9'}
+                    </div>
+                  </div>
+
+                  {/* Next revision date */}
+                  <div style={{ marginBottom: 20 }}>
+                    <FieldLabel>Datum p\u0159\u00ed\u0161t\u00ed revize</FieldLabel>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <input
+                        type="date"
+                        value={panelDeadline}
+                        onChange={e => setPanelDeadline(e.target.value)}
+                        style={{ ...s.input, width: 'auto', minWidth: 180, colorScheme: isDark ? 'dark' : 'light' }}
+                      />
+                      {panelDeadline && (
+                        <span style={{ ...s.tag(getRevColor(panelDeadline)), fontSize: 12, padding: '4px 10px' }}>
+                          {getRevLabel(panelDeadline)}
+                        </span>
+                      )}
+                      {panelDeadline && (
+                        <button onClick={() => setPanelDeadline('')} style={{
+                          background: 'none', border: 'none', color: T.red, cursor: 'pointer',
+                          fontSize: 12, display: 'flex', alignItems: 'center', gap: 3, padding: '4px 6px',
                         }}>
+                          {ICONS.trash}
+                        </button>
+                      )}
+                    </div>
+                    {!panelDeadline && (
+                      <div style={{ fontSize: 12, color: T.textMuted, fontStyle: 'italic', marginTop: 6 }}>Nenastaveno</div>
+                    )}
+                  </div>
+
+                  {/* Company */}
+                  <div style={{ marginBottom: 24 }}>
+                    <FieldLabel>Firma</FieldLabel>
+                    <input
+                      value={panelCompany}
+                      onChange={e => setPanelCompany(e.target.value)}
+                      placeholder="nap\u0159. Enetep, p.\u0160avel..."
+                      style={s.input}
+                    />
+                  </div>
+
+                  <div style={{ height: 1, background: T.border, marginBottom: 20 }} />
+
+                  {/* Current document */}
+                  <div style={{ marginBottom: 16 }}>
+                    <FieldLabel>Dokument</FieldLabel>
+                    {currentDoc ? (
+                      <div style={{
+                        background: T.accent + '0d', border: `1px solid ${T.accent}22`, borderRadius: 10, padding: 14,
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}>
-                            <span style={{ color: T.textMuted, display: 'flex', flexShrink: 0 }}>{ICONS.doc}</span>
+                            <span style={{ color: T.accent, display: 'flex', flexShrink: 0 }}>{ICONS.doc}</span>
                             <div style={{ minWidth: 0 }}>
-                              <div style={{ fontSize: 12, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{doc.name}</div>
-                              <div style={{ fontSize: 10, color: T.textMuted }}>{fmtDate(doc.date)} · {doc.size}</div>
+                              <div style={{ fontSize: 13, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{currentDoc.name}</div>
+                              <div style={{ fontSize: 11, color: T.textMuted }}>{fmtDate(currentDoc.date)} \u00b7 {currentDoc.size}</div>
                             </div>
                           </div>
-                          <div style={{ display: 'flex', gap: 3, flexShrink: 0 }}>
+                          <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
                             <button style={{
                               background: T.accent + '22', color: T.accent, border: 'none',
-                              borderRadius: 5, padding: '4px 6px', cursor: 'pointer', display: 'flex',
+                              borderRadius: 6, padding: '5px 8px', cursor: 'pointer', display: 'flex',
                             }} title="Zobrazit">{ICONS.eye}</button>
                             <button style={{
                               background: T.green + '22', color: T.green, border: 'none',
-                              borderRadius: 5, padding: '4px 6px', cursor: 'pointer', display: 'flex',
-                            }} title="Stáhnout">{ICONS.download}</button>
-                            <button onClick={() => handleDeleteDoc(doc.id)} style={{
-                              background: T.red + '15', color: T.red, border: 'none',
-                              borderRadius: 5, padding: '4px 6px', cursor: 'pointer', display: 'flex',
+                              borderRadius: 6, padding: '5px 8px', cursor: 'pointer', display: 'flex',
+                            }} title="St\u00e1hnout">{ICONS.download}</button>
+                            <button onClick={() => handleDeleteDoc(currentDoc.id)} style={{
+                              background: T.red + '22', color: T.red, border: 'none',
+                              borderRadius: 6, padding: '5px 8px', cursor: 'pointer', display: 'flex',
                             }} title="Smazat">{ICONS.trash}</button>
                           </div>
                         </div>
-                      ))}
+                      </div>
+                    ) : (
+                      <div style={{ color: T.textMuted, fontSize: 13, fontStyle: 'italic', marginBottom: 4 }}>
+                        \u017d\u00e1dn\u00fd dokument
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Upload new doc */}
+                  {!showUpload ? (
+                    <button onClick={() => setShowUpload(true)} style={{
+                      ...s.btn(false), display: 'flex', alignItems: 'center', gap: 6,
+                      border: `1px dashed ${T.accent}44`, color: T.accent, width: '100%', justifyContent: 'center',
+                      padding: '10px 16px', marginBottom: 16,
+                    }}
+                      onMouseEnter={e => { e.currentTarget.style.background = T.accent + '11'; }}
+                      onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+                    >
+                      {ICONS.upload} {currentDoc ? 'Nahr\u00e1t nov\u00fd (st\u00e1vaj\u00edc\u00ed \u2192 historie)' : 'Nahr\u00e1t dokument'}
+                    </button>
+                  ) : (
+                    <div style={{
+                      background: T.bg, borderRadius: 10, padding: 14, marginBottom: 16,
+                      border: `1px solid ${T.accent}33`,
+                    }}>
+                      <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 8 }}>Nahr\u00e1t nov\u00fd dokument</div>
+                      {currentDoc && (
+                        <div style={{
+                          fontSize: 11, color: T.orange, marginBottom: 8, padding: '6px 8px',
+                          background: T.orange + '11', borderRadius: 6,
+                        }}>
+                          St\u00e1vaj\u00edc\u00ed \u201e{currentDoc.name}\u201c se p\u0159esune do historie.
+                        </div>
+                      )}
+                      <div style={{ marginBottom: 10 }}>
+                        <input
+                          value={uploadName}
+                          onChange={e => setUploadName(e.target.value)}
+                          placeholder={`nap\u0159. Revize ${detail.revType} ${new Date().getFullYear()}.pdf`}
+                          style={s.input}
+                          autoFocus
+                        />
+                      </div>
+                      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                        <button onClick={() => fileRef.current?.click()} style={{
+                          ...s.btn(false), display: 'flex', alignItems: 'center', gap: 5, fontSize: 12,
+                          border: `1px dashed ${T.border}`,
+                        }}>
+                          {ICONS.folder} Soubor
+                        </button>
+                        <input ref={fileRef} type="file" style={{ display: 'none' }}
+                          onChange={e => {
+                            const file = e.target.files?.[0];
+                            if (file && !uploadName) setUploadName(file.name);
+                          }}
+                        />
+                        <div style={{ flex: 1 }} />
+                        <button onClick={() => { setShowUpload(false); setUploadName(''); }} style={{ ...s.btn(false), fontSize: 12 }}>Zru\u0161it</button>
+                        <button onClick={handleUploadDoc} style={{
+                          ...s.btn(true), fontSize: 12, opacity: uploadName.trim() ? 1 : 0.5,
+                        }}>Nahr\u00e1t</button>
+                      </div>
                     </div>
                   )}
-                </div>
+
+                  {/* History */}
+                  {historyDocs.length > 0 && (
+                    <div>
+                      <button onClick={() => setShowHistory(!showHistory)} style={{
+                        background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+                        display: 'flex', alignItems: 'center', gap: 6, width: '100%',
+                        fontSize: 12, fontWeight: 700, color: T.textDim, textTransform: 'uppercase', letterSpacing: '0.5px',
+                        marginBottom: showHistory ? 10 : 0,
+                      }}>
+                        <span style={{ transition: 'transform .2s', transform: showHistory ? 'rotate(90deg)' : 'rotate(0)', display: 'inline-block' }}>&#9654;</span>
+                        Historie ({historyDocs.length})
+                      </button>
+                      {showHistory && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                          {historyDocs.map(doc => (
+                            <div key={doc.id} style={{
+                              background: T.bg, borderRadius: 8, padding: '8px 12px',
+                              display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
+                              border: `1px solid ${T.border}`,
+                            }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}>
+                                <span style={{ color: T.textMuted, display: 'flex', flexShrink: 0 }}>{ICONS.doc}</span>
+                                <div style={{ minWidth: 0 }}>
+                                  <div style={{ fontSize: 12, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{doc.name}</div>
+                                  <div style={{ fontSize: 10, color: T.textMuted }}>{fmtDate(doc.date)} \u00b7 {doc.size}</div>
+                                </div>
+                              </div>
+                              <div style={{ display: 'flex', gap: 3, flexShrink: 0 }}>
+                                <button style={{
+                                  background: T.accent + '22', color: T.accent, border: 'none',
+                                  borderRadius: 5, padding: '4px 6px', cursor: 'pointer', display: 'flex',
+                                }} title="Zobrazit">{ICONS.eye}</button>
+                                <button style={{
+                                  background: T.green + '22', color: T.green, border: 'none',
+                                  borderRadius: 5, padding: '4px 6px', cursor: 'pointer', display: 'flex',
+                                }} title="St\u00e1hnout">{ICONS.download}</button>
+                                <button onClick={() => handleDeleteDoc(doc.id)} style={{
+                                  background: T.red + '15', color: T.red, border: 'none',
+                                  borderRadius: 5, padding: '4px 6px', cursor: 'pointer', display: 'flex',
+                                }} title="Smazat">{ICONS.trash}</button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </>
               )}
             </div>
 
-            {/* Footer — Save + Close */}
+            {/* Footer */}
             <div style={{
               padding: '16px 24px', borderTop: `1px solid ${T.border}`,
               display: 'flex', gap: 10, justifyContent: 'flex-end',
             }}>
-              <button onClick={closeDetail} style={{ ...s.btn(false), padding: '10px 20px' }}>Zavřít</button>
-              <button onClick={handleSave} style={{ ...s.btn(true), padding: '10px 24px' }}>Uložit</button>
+              <button onClick={closeDetail} style={{ ...s.btn(false), padding: '10px 20px' }}>Zav\u0159\u00edt</button>
+              <button onClick={handleSave} style={{ ...s.btn(true), padding: '10px 24px' }}>Ulo\u017eit</button>
             </div>
           </>
         )}
@@ -377,29 +442,55 @@ export default function ObligationsPage({ matrix, onUpdateCell, onOpenPropertyPr
     <div className="fade-in">
       {SlidingPanel}
 
-      <SectionTitle>Povinnosti a revize</SectionTitle>
-      <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
-        {[['matrix', 'Matice'], ['list', 'Seznam'], ['timeline', 'Časová osa']].map(([k, l]) => (
-          <button key={k} onClick={() => setView(k)} style={s.btn(view === k)}>{l}</button>
-        ))}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12, marginBottom: 20 }}>
+        <SectionTitle>Povinnosti a revize</SectionTitle>
+        <div style={{ display: 'flex', gap: 8 }}>
+          {[['matrix', 'Matice'], ['list', 'Seznam'], ['timeline', '\u010casov\u00e1 osa']].map(([k, l]) => (
+            <button key={k} onClick={() => setView(k)} style={s.btn(view === k)}>{l}</button>
+          ))}
+        </div>
       </div>
 
       {/* ===== MATRIX VIEW ===== */}
       {view === 'matrix' && (
         <div style={{ ...s.card, padding: 0, overflow: 'hidden' }}>
+          {/* Add column button */}
+          <div style={{ padding: '12px 16px', borderBottom: `1px solid ${T.border}`, display: 'flex', justifyContent: 'flex-end' }}>
+            <button onClick={() => setShowAddCol(true)} style={{ ...s.btn(true), display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', fontSize: 13 }}>
+              {ICONS.plus} P\u0159idat typ revize
+            </button>
+          </div>
+
           <div style={{ overflowX: 'auto' }}>
-            <table style={{ ...s.table, minWidth: 1400, fontSize: 11, borderSpacing: 0 }}>
+            <table style={{ ...s.table, minWidth: Math.max(1400, 190 + revisionTypes.length * 130), fontSize: 13, borderSpacing: 0 }}>
               <thead>
                 <tr>
-                  <th style={{ ...s.th, position: 'sticky', left: 0, background: T.card, zIndex: 2, minWidth: 190 }}>Objekt</th>
-                  {REV_TYPES.map((rt, i) => (
-                    <th key={i} style={{
-                      ...s.th, textAlign: 'center', minWidth: 120, padding: '12px 8px',
+                  <th style={{ ...s.th, position: 'sticky', left: 0, background: T.card, zIndex: 2, minWidth: 190, fontSize: 13 }}>Objekt</th>
+                  {revisionTypes.map((rt) => (
+                    <th key={rt.id} style={{
+                      ...s.th, textAlign: 'center', minWidth: 130, padding: '14px 10px',
                       verticalAlign: 'bottom',
                     }}>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: T.text, marginBottom: 4 }}>{rt.name}</div>
-                      {rt.period && <div style={{ fontWeight: 500, fontSize: 10, color: T.textMuted, textTransform: 'uppercase', letterSpacing: '0.3px' }}>{rt.period}</div>}
-                      {rt.supplier && <div style={{ fontWeight: 500, fontSize: 10, color: T.cyan, marginTop: 2 }}>{rt.supplier}</div>}
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, marginBottom: 4 }}>
+                        <div style={{ fontSize: 14, fontWeight: 700, color: T.text }}>{rt.name}</div>
+                        <button
+                          onClick={() => setConfirmDeleteCol(rt.name)}
+                          style={{
+                            background: 'none', border: 'none', cursor: 'pointer', color: T.textMuted,
+                            padding: '2px 4px', display: 'flex', alignItems: 'center', borderRadius: 4,
+                            opacity: 0.4, transition: 'opacity .15s',
+                          }}
+                          onMouseEnter={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.color = T.red; }}
+                          onMouseLeave={e => { e.currentTarget.style.opacity = '0.4'; e.currentTarget.style.color = T.textMuted; }}
+                          title={`Smazat sloupec ${rt.name}`}
+                        >
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                          </svg>
+                        </button>
+                      </div>
+                      {rt.frequency && <div style={{ fontWeight: 500, fontSize: 11, color: T.textMuted, textTransform: 'uppercase', letterSpacing: '0.3px' }}>{rt.frequency}</div>}
+                      {rt.supplier && <div style={{ fontWeight: 500, fontSize: 11, color: T.cyan, marginTop: 2 }}>{rt.supplier}</div>}
                     </th>
                   ))}
                 </tr>
@@ -407,7 +498,7 @@ export default function ObligationsPage({ matrix, onUpdateCell, onOpenPropertyPr
               <tbody>
                 {OBL_OBJECTS.map((obj, oi) => (
                   <tr key={oi}>
-                    <td style={{ ...s.td, fontWeight: 600, position: 'sticky', left: 0, background: T.card, zIndex: 1, whiteSpace: 'nowrap', fontSize: 12 }}>
+                    <td style={{ ...s.td, fontWeight: 600, position: 'sticky', left: 0, background: T.card, zIndex: 1, whiteSpace: 'nowrap', fontSize: 13 }}>
                       <span
                         onClick={(e) => { e.stopPropagation(); if (onOpenPropertyProfile) onOpenPropertyProfile(obj); }}
                         style={{ cursor: 'pointer', transition: 'color .15s' }}
@@ -415,21 +506,25 @@ export default function ObligationsPage({ matrix, onUpdateCell, onOpenPropertyPr
                         onMouseLeave={e => e.currentTarget.style.color = T.text}
                       >{obj}</span>
                     </td>
-                    {REV_TYPES.map((rt, ti) => {
+                    {revisionTypes.map((rt) => {
                       const cell = getCell(obj, rt.name);
+                      const isNA = cell.notApplicable;
                       const d = cell.deadline;
                       const color = getRevColor(d);
                       const hasDoc = cell.docs.length > 0;
                       return (
-                        <td key={ti} style={{ ...s.td, textAlign: 'center', padding: '4px 3px', verticalAlign: 'top' }}>
+                        <td key={rt.id} style={{ ...s.td, textAlign: 'center', padding: '4px 3px', verticalAlign: 'top', height: 'auto' }}>
                           <div
                             onClick={() => openDetail(obj, rt.name)}
                             style={{
-                              borderRadius: 10, padding: '8px 6px', lineHeight: '1.3', cursor: 'pointer',
-                              transition: 'all .15s', minHeight: 54,
+                              borderRadius: 10, padding: '10px 8px', lineHeight: '1.3', cursor: 'pointer',
+                              transition: 'all .15s', minHeight: 70,
                               display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                               position: 'relative',
-                              ...(d ? {
+                              ...(isNA ? {
+                                background: T.textMuted + '0a',
+                                border: `1px solid ${T.textMuted}15`,
+                              } : d ? {
                                 background: color + '12',
                                 border: `1px solid ${color}20`,
                               } : {
@@ -439,17 +534,19 @@ export default function ObligationsPage({ matrix, onUpdateCell, onOpenPropertyPr
                             }}
                             onMouseEnter={e => {
                               e.currentTarget.style.transform = 'scale(1.04)';
-                              e.currentTarget.style.borderColor = d ? color + '55' : T.accent + '55';
+                              if (!isNA) e.currentTarget.style.borderColor = d ? color + '55' : T.accent + '55';
                             }}
                             onMouseLeave={e => {
                               e.currentTarget.style.transform = 'scale(1)';
-                              e.currentTarget.style.borderColor = d ? color + '20' : T.textMuted + '22';
+                              if (!isNA) e.currentTarget.style.borderColor = d ? color + '20' : T.textMuted + '22';
                             }}
                           >
-                            {d ? (
+                            {isNA ? (
+                              <span style={{ color: T.textMuted, fontSize: 13, fontWeight: 600, textDecoration: 'line-through', opacity: 0.5 }}>N/A</span>
+                            ) : d ? (
                               <>
                                 <div style={{ color, fontSize: 13, fontWeight: 700 }}>{fmtDate(d)}</div>
-                                <div style={{ fontSize: 10, color, opacity: 0.8, marginTop: 1 }}>{getRevLabel(d)}</div>
+                                <div style={{ fontSize: 11, color, opacity: 0.8, marginTop: 2 }}>{getRevLabel(d)}</div>
                                 {hasDoc && (
                                   <div style={{
                                     position: 'absolute', top: 3, right: 4,
@@ -462,7 +559,7 @@ export default function ObligationsPage({ matrix, onUpdateCell, onOpenPropertyPr
                                 )}
                               </>
                             ) : (
-                              <span style={{ color: T.textMuted, fontSize: 16, opacity: 0.4 }}>+</span>
+                              <span style={{ color: T.textMuted, fontSize: 18, opacity: 0.4 }}>+</span>
                             )}
                           </div>
                         </td>
@@ -473,23 +570,26 @@ export default function ObligationsPage({ matrix, onUpdateCell, onOpenPropertyPr
               </tbody>
             </table>
           </div>
-          <div style={{ padding: '12px 16px', borderTop: `1px solid ${T.border}`, display: 'flex', gap: 16, flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ padding: '14px 16px', borderTop: `1px solid ${T.border}`, display: 'flex', gap: 16, flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center' }}>
             <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
-              {[[T.red, 'Po termínu'], [T.orange, 'Do 30 dní'], [T.yellow, 'Do 90 dní'], [T.green, 'OK']].map(([c, l]) => (
-                <div key={l} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: T.textDim }}>
+              {[[T.red, 'Po term\u00ednu'], [T.orange, 'Do 30 dn\u00ed'], [T.yellow, 'Do 90 dn\u00ed'], [T.green, 'OK']].map(([c, l]) => (
+                <div key={l} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: T.textDim }}>
                   <div style={{ width: 12, height: 12, borderRadius: 3, background: c }} /> {l}
                 </div>
               ))}
             </div>
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: T.textDim }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: T.textDim }}>
                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={T.accent} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
                 </svg>
-                Má dokument
+                M\u00e1 dokument
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: T.textDim }}>
-                <span style={{ color: T.textMuted, fontSize: 14 }}>+</span> Klikni pro nastavení
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: T.textDim }}>
+                <span style={{ color: T.textMuted, fontSize: 13, fontWeight: 600, textDecoration: 'line-through', opacity: 0.5 }}>N/A</span> Nevztahuje se
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: T.textDim }}>
+                <span style={{ color: T.textMuted, fontSize: 16 }}>+</span> Klikni pro nastaven\u00ed
               </div>
             </div>
           </div>
@@ -503,7 +603,7 @@ export default function ObligationsPage({ matrix, onUpdateCell, onOpenPropertyPr
             <table style={s.table}>
               <thead><tr>
                 <th style={s.th}>Stav</th><th style={s.th}>Objekt</th><th style={s.th}>Typ revize</th>
-                <th style={s.th}>Dodavatel</th><th style={s.th}>Perioda</th><th style={s.th}>Termín</th><th style={s.th}>Zbývá</th><th style={s.th}>Dokument</th>
+                <th style={s.th}>Dodavatel</th><th style={s.th}>Perioda</th><th style={s.th}>Term\u00edn</th><th style={s.th}>Zb\u00fdv\u00e1</th><th style={s.th}>Dokument</th>
               </tr></thead>
               <tbody>
                 {allItems.map((it, i) => {
@@ -518,18 +618,18 @@ export default function ObligationsPage({ matrix, onUpdateCell, onOpenPropertyPr
                       <td style={s.td}><div style={{ width: 10, height: 10, borderRadius: '50%', background: color }} /></td>
                       <td style={{ ...s.td, fontWeight: 600 }}>{it.object}</td>
                       <td style={s.td}>{it.type}</td>
-                      <td style={{ ...s.td, color: T.cyan }}>{it.company || it.supplier || '—'}</td>
-                      <td style={{ ...s.td, color: T.textDim }}>{it.period || '—'}</td>
+                      <td style={{ ...s.td, color: T.cyan }}>{it.company || it.supplier || '\u2014'}</td>
+                      <td style={{ ...s.td, color: T.textDim }}>{it.period || '\u2014'}</td>
                       <td style={s.td}>{fmtDate(it.date)}</td>
                       <td style={{ ...s.td, color, fontWeight: 600 }}>{getRevLabel(it.date)}</td>
                       <td style={s.td}>
                         {hasDoc ? (
-                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: T.accent, fontSize: 11, fontWeight: 500 }}>
-                            {ICONS.doc} {it.docs[0].name.length > 25 ? it.docs[0].name.slice(0, 23) + '…' : it.docs[0].name}
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: T.accent, fontSize: 12, fontWeight: 500 }}>
+                            {ICONS.doc} {it.docs[0].name.length > 25 ? it.docs[0].name.slice(0, 23) + '\u2026' : it.docs[0].name}
                             {it.docs.length > 1 && <span style={s.tag(T.textMuted)}>+{it.docs.length - 1}</span>}
                           </span>
                         ) : (
-                          <span style={{ color: T.textMuted, fontSize: 11 }}>—</span>
+                          <span style={{ color: T.textMuted, fontSize: 12 }}>\u2014</span>
                         )}
                       </td>
                     </tr>
@@ -546,7 +646,7 @@ export default function ObligationsPage({ matrix, onUpdateCell, onOpenPropertyPr
         <div>
           {timeline.map(([month, items]) => {
             const [y, m] = month.split('-');
-            const monthNames = ['', 'Leden', 'Únor', 'Březen', 'Duben', 'Květen', 'Červen', 'Červenec', 'Srpen', 'Září', 'Říjen', 'Listopad', 'Prosinec'];
+            const monthNames = ['', 'Leden', '\u00danor', 'B\u0159ezen', 'Duben', 'Kv\u011bten', '\u010cerven', '\u010cervenec', 'Srpen', 'Z\u00e1\u0159\u00ed', '\u0158\u00edjen', 'Listopad', 'Prosinec'];
             const label = `${monthNames[parseInt(m)]} ${y}`;
             const isPast = new Date(y, parseInt(m) - 1, 28) < new Date();
             return (
@@ -554,7 +654,7 @@ export default function ObligationsPage({ matrix, onUpdateCell, onOpenPropertyPr
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
                   <div style={{ width: 14, height: 14, borderRadius: '50%', background: isPast ? T.red : T.accent, flexShrink: 0 }} />
                   <div style={{ height: 1, flex: 1, background: T.border }} />
-                  <div style={{ fontSize: 14, fontWeight: 700, color: isPast ? T.red : T.text, whiteSpace: 'nowrap' }}>{label}</div>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: isPast ? T.red : T.text, whiteSpace: 'nowrap' }}>{label}</div>
                 </div>
                 <div style={{ marginLeft: 7, borderLeft: `2px solid ${T.border}`, paddingLeft: 24 }}>
                   {items.map((it, i) => {
@@ -562,19 +662,19 @@ export default function ObligationsPage({ matrix, onUpdateCell, onOpenPropertyPr
                     return (
                       <div key={i}
                         onClick={() => openDetail(it.object, it.type)}
-                        style={{ ...s.card, padding: 12, marginBottom: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8, cursor: 'pointer' }}
+                        style={{ ...s.card, padding: 14, marginBottom: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8, cursor: 'pointer' }}
                         onMouseEnter={e => e.currentTarget.style.borderColor = T.accent}
                         onMouseLeave={e => e.currentTarget.style.borderColor = T.border}
                       >
                         <div>
-                          <div style={{ fontWeight: 600, fontSize: 13 }}>{it.object}</div>
-                          <div style={{ color: T.textDim, fontSize: 12 }}>
+                          <div style={{ fontWeight: 600, fontSize: 14 }}>{it.object}</div>
+                          <div style={{ color: T.textDim, fontSize: 13 }}>
                             {it.type} {it.company || it.supplier ? `(${it.company || it.supplier})` : ''}
                             {hasDoc && <span style={{ color: T.accent, marginLeft: 8 }}>{ICONS.doc} {it.docs.length} dok.</span>}
                           </div>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                          <span style={{ fontSize: 12, color: T.textDim }}>{fmtDate(it.date)}</span>
+                          <span style={{ fontSize: 13, color: T.textDim }}>{fmtDate(it.date)}</span>
                           <span style={s.tag(getRevColor(it.date))}>{getRevLabel(it.date)}</span>
                         </div>
                       </div>
@@ -585,6 +685,54 @@ export default function ObligationsPage({ matrix, onUpdateCell, onOpenPropertyPr
             );
           })}
         </div>
+      )}
+
+      {/* Add column modal */}
+      {showAddCol && (
+        <Modal onClose={() => setShowAddCol(false)}>
+          <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 20, color: T.text }}>Nov\u00fd typ revize</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div>
+              <FieldLabel>N\u00e1zev *</FieldLabel>
+              <input value={addColForm.name} onChange={e => setAddColForm({ ...addColForm, name: e.target.value })} placeholder="nap\u0159. EPS" style={s.input} autoFocus />
+            </div>
+            <div>
+              <FieldLabel>Frekvence</FieldLabel>
+              <select value={addColForm.frequency} onChange={e => setAddColForm({ ...addColForm, frequency: e.target.value })} style={{ ...s.input, cursor: 'pointer' }}>
+                {FREQUENCY_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                <option value="custom">Vlastn\u00ed...</option>
+              </select>
+              {addColForm.frequency === 'custom' && (
+                <input
+                  value=""
+                  onChange={e => setAddColForm({ ...addColForm, frequency: e.target.value })}
+                  placeholder="nap\u0159. 1\u00d76let"
+                  style={{ ...s.input, marginTop: 8 }}
+                />
+              )}
+            </div>
+            <div>
+              <FieldLabel>Firma</FieldLabel>
+              <input value={addColForm.supplier} onChange={e => setAddColForm({ ...addColForm, supplier: e.target.value })} placeholder="nap\u0159. Enetep" style={s.input} />
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 10, marginTop: 24, justifyContent: 'flex-end' }}>
+            <button onClick={() => setShowAddCol(false)} style={{ ...s.btn(false), padding: '10px 20px' }}>Zru\u0161it</button>
+            <button onClick={handleAddCol} style={{ ...s.btn(true), padding: '10px 20px', opacity: addColForm.name.trim() ? 1 : 0.5 }}>P\u0159idat</button>
+          </div>
+        </Modal>
+      )}
+
+      {/* Confirm delete column */}
+      {confirmDeleteCol && (
+        <Modal onClose={() => setConfirmDeleteCol(null)} width={400}>
+          <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 12, color: T.red }}>Smazat sloupec \u201e{confirmDeleteCol}\u201c?</h3>
+          <p style={{ color: T.textDim, fontSize: 13, marginBottom: 20 }}>Tato akce sma\u017ee sloupec ze v\u0161ech nemovitost\u00ed v\u010detn\u011b v\u0161ech dat a dokument\u016f. Tato akce je nevratn\u00e1.</p>
+          <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+            <button onClick={() => setConfirmDeleteCol(null)} style={{ ...s.btn(false), padding: '10px 20px' }}>Zru\u0161it</button>
+            <button onClick={() => handleDeleteCol(confirmDeleteCol)} style={{ ...s.btn(true), padding: '10px 20px', background: T.red }}>Smazat</button>
+          </div>
+        </Modal>
       )}
     </div>
   );

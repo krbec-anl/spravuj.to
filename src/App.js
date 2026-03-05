@@ -4,7 +4,7 @@ import { ThemeProvider, useTheme } from './theme';
 import ICONS from './icons';
 import {
   INITIAL_PROPERTIES, INITIAL_MATRIX, INITIAL_DOCUMENTS,
-  NAV_SECTIONS, NAV_FLAT,
+  NAV_SECTIONS, NAV_FLAT, REV_TYPES as INITIAL_REV_TYPES, OBL_OBJECTS,
 } from './data/mockData';
 const APP_VERSION = '0.3.0';
 
@@ -49,6 +49,9 @@ function AppInner() {
   const [documents, setDocuments] = useState(INITIAL_DOCUMENTS);
   const [oblMatrix, setOblMatrix] = useState(INITIAL_MATRIX);
   const [properties, setProperties] = useState(INITIAL_PROPERTIES);
+  const [revisionTypes, setRevisionTypes] = useState(() =>
+    INITIAL_REV_TYPES.map((rt, i) => ({ id: i + 1, name: rt.name, frequency: rt.period, supplier: rt.supplier }))
+  );
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -69,6 +72,29 @@ function AppInner() {
       ...prev,
       [obj]: { ...prev[obj], [rt]: newCell },
     }));
+  }, []);
+
+  const handleAddRevType = useCallback((newType) => {
+    setRevisionTypes(prev => [...prev, { ...newType, id: Date.now() }]);
+    setOblMatrix(prev => {
+      const next = { ...prev };
+      OBL_OBJECTS.forEach(obj => {
+        next[obj] = { ...next[obj], [newType.name]: { deadline: null, docs: [], company: newType.supplier || '' } };
+      });
+      return next;
+    });
+  }, []);
+
+  const handleDeleteRevType = useCallback((typeName) => {
+    setRevisionTypes(prev => prev.filter(rt => rt.name !== typeName));
+    setOblMatrix(prev => {
+      const next = {};
+      Object.entries(prev).forEach(([obj, cells]) => {
+        const { [typeName]: _, ...rest } = cells;
+        next[obj] = rest;
+      });
+      return next;
+    });
   }, []);
 
   const openPropertyProfile = useCallback((propertyId) => {
@@ -128,7 +154,7 @@ function AppInner() {
       case 'propertyList': return <PropertiesPage properties={properties} onOpenProfile={openPropertyProfile} onAddProperty={handleAddProperty} />;
       case 'tenants': return <TenantsPage properties={properties} />;
       case 'finance': return <FinancePage properties={properties} />;
-      case 'obligations': return <ObligationsPage matrix={oblMatrix} onUpdateCell={handleUpdateCell} onOpenPropertyProfile={openPropertyProfileByName} />;
+      case 'obligations': return <ObligationsPage matrix={oblMatrix} onUpdateCell={handleUpdateCell} onOpenPropertyProfile={openPropertyProfileByName} revisionTypes={revisionTypes} onAddRevType={handleAddRevType} onDeleteRevType={handleDeleteRevType} />;
       case 'maintenance': return <MaintenancePage />;
       case 'communication': return <CommunicationPage />;
       case 'owners': return <OwnerPortalPage properties={properties} />;
@@ -279,7 +305,7 @@ function AppInner() {
                 {sidebarOpen ? '\u2715' : '\u2630'}
               </button>
             )}
-            <span style={{ fontSize: 16, fontWeight: 600 }}>
+            <span style={{ fontSize: 18, fontWeight: 600 }}>
               {page === 'propertyProfile'
                 ? `Seznam nemovitostí / ${properties.find(p => p.id === profilePropertyId)?.name || ''}`
                 : (NAV_FLAT.find(n => n.id === page)?.label || 'Dashboard')

@@ -15,10 +15,10 @@ export function StatCard({ label, value, sub, color }) {
 
 export function SectionTitle({ children }) {
   const { T } = useTheme();
-  return <h2 style={{ fontSize: 24, fontWeight: 700, marginBottom: 24, color: T.text, letterSpacing: '-0.3px' }}>{children}</h2>;
+  return <h2 style={{ fontSize: 28, fontWeight: 700, marginBottom: 24, color: T.text, letterSpacing: '-0.3px' }}>{children}</h2>;
 }
 
 export function SubTitle({ children, style: st }) {
   const { T } = useTheme();
-  return <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 14, color: T.textDim, ...st }}>{children}</h3>;
+  return <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 14, color: T.textDim, ...st }}>{children}</h3>;
 }

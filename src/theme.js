@@ -85,7 +85,7 @@ function makeStyles(T, isDark) {
       color: T.textDim, fontWeight: 600, fontSize: 12,
       textTransform: 'uppercase', letterSpacing: '0.5px',
     },
-    td: { padding: '14px 16px', borderBottom: `1px solid ${T.border}22` },
+    td: { padding: '14px 16px', borderBottom: `1px solid ${T.border}22`, height: 52 },
     badge: (color) => ({
       display: 'inline-block', padding: '4px 12px', borderRadius: 20,
       background: color + '22', color: color, fontSize: 12, fontWeight: 600,
