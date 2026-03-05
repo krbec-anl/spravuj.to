@@ -139,7 +139,7 @@ export default function PropertyProfile({ property, isOpen, onClose, onUpdatePro
     { id: 'maintenance', label: 'Údržba' },
   ];
 
-  const lbl = { fontSize: 12, fontWeight: 600, color: T.textMuted, textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: 6 };
+  const lbl = { fontSize: 13, fontWeight: 600, color: T.textMuted, textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: 6 };
   const inp = { ...s.input, colorScheme: isDark ? 'dark' : 'light' };
 
   return (

@@ -193,13 +193,13 @@ export default function PropertyProfilePage({ propertyId, properties, onBack, do
   );
 
   const FieldLabel = ({ children }) => (
-    <label style={{ fontSize: 11, color: T.textMuted, display: 'block', marginBottom: 4 }}>{children}</label>
+    <label style={{ fontSize: 13, color: T.textMuted, display: 'block', marginBottom: 4 }}>{children}</label>
   );
 
   // ---- STAT BLOCK ----
   const statBlock = (label, value, color) => (
     <div style={{ background: isDark ? T.bg : T.border + '33', borderRadius: 12, padding: 16 }}>
-      <div style={{ fontSize: 11, color: T.textMuted, marginBottom: 4 }}>{label}</div>
+      <div style={{ fontSize: 13, color: T.textMuted, marginBottom: 4 }}>{label}</div>
       <div style={{ fontSize: 22, fontWeight: 700, color: color || T.text }}>{value}</div>
     </div>
   );

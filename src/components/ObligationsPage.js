@@ -8,12 +8,12 @@ import { SectionTitle } from './shared';
 
 const FREQUENCY_OPTIONS = [
   { value: '', label: 'Neuvedeno' },
-  { value: '1\u00d7m\u011bs\u00edc', label: '1\u00d7m\u011bs\u00edc' },
-  { value: '1\u00d7rok', label: '1\u00d7rok' },
-  { value: '1\u00d72roky', label: '1\u00d72roky' },
-  { value: '1\u00d73roky', label: '1\u00d73roky' },
-  { value: '1\u00d74roky', label: '1\u00d74roky' },
-  { value: '1\u00d75let', label: '1\u00d75let' },
+  { value: '1×měsíc', label: '1×měsíc' },
+  { value: '1×rok', label: '1×rok' },
+  { value: '1×2roky', label: '1×2roky' },
+  { value: '1×3roky', label: '1×3roky' },
+  { value: '1×4roky', label: '1×4roky' },
+  { value: '1×5let', label: '1×5let' },
 ];
 
 export default function ObligationsPage({ matrix, onUpdateCell, onOpenPropertyProfile, revisionTypes, onAddRevType, onDeleteRevType }) {
@@ -72,7 +72,7 @@ export default function ObligationsPage({ matrix, onUpdateCell, onOpenPropertyPr
 
   const handleUploadDoc = () => {
     if (!detail || !uploadName.trim()) return;
-    const newDoc = { id: 'rd' + Date.now(), name: uploadName, date: new Date().toISOString().split('T')[0], size: '\u2014 KB' };
+    const newDoc = { id: 'rd' + Date.now(), name: uploadName, date: new Date().toISOString().split('T')[0], size: '— KB' };
     setPanelDocs([newDoc, ...panelDocs]);
     setUploadName('');
     setShowUpload(false);
@@ -130,7 +130,7 @@ export default function ObligationsPage({ matrix, onUpdateCell, onOpenPropertyPr
   );
 
   const FieldLabel = ({ children }) => (
-    <label style={{ fontSize: 11, fontWeight: 700, color: T.textMuted, textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: 8 }}>{children}</label>
+    <label style={{ fontSize: 13, fontWeight: 700, color: T.textMuted, textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: 8 }}>{children}</label>
   );
 
   // ---- SLIDING PANEL ----
@@ -199,7 +199,7 @@ export default function ObligationsPage({ matrix, onUpdateCell, onOpenPropertyPr
               }}>
                 <div>
                   <div style={{ fontSize: 13, fontWeight: 600, color: panelNotApplicable ? T.orange : T.text }}>Nevztahuje se na tuto nemovitost</div>
-                  <div style={{ fontSize: 11, color: T.textMuted, marginTop: 2 }}>Pokud je zapnuto, bu\u0148ka bude zob\u0159\u0065\u007aena jako N/A</div>
+                  <div style={{ fontSize: 12, color: T.textMuted, marginTop: 2 }}>Pokud je zapnuto, buňka bude zobrazena jako N/A</div>
                 </div>
                 <button
                   onClick={() => setPanelNotApplicable(!panelNotApplicable)}
@@ -227,18 +227,18 @@ export default function ObligationsPage({ matrix, onUpdateCell, onOpenPropertyPr
                 <>
                   {/* Last revision date */}
                   <div style={{ marginBottom: 20 }}>
-                    <FieldLabel>Datum posledn\u00ed revize</FieldLabel>
+                    <FieldLabel>Datum poslední revize</FieldLabel>
                     <div style={{
                       ...s.input, background: T.card, cursor: 'default',
                       color: lastRevisionDate ? T.text : T.textMuted,
                     }}>
-                      {lastRevisionDate ? fmtDate(lastRevisionDate) : '\u017d\u00e1dn\u00fd dokument \u2014 datum nezn\u00e1m\u00e9'}
+                      {lastRevisionDate ? fmtDate(lastRevisionDate) : 'Žádný dokument — datum neznámé'}
                     </div>
                   </div>
 
                   {/* Next revision date */}
                   <div style={{ marginBottom: 20 }}>
-                    <FieldLabel>Datum p\u0159\u00ed\u0161t\u00ed revize</FieldLabel>
+                    <FieldLabel>Datum příští revize</FieldLabel>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                       <input
                         type="date"
@@ -271,7 +271,7 @@ export default function ObligationsPage({ matrix, onUpdateCell, onOpenPropertyPr
                     <input
                       value={panelCompany}
                       onChange={e => setPanelCompany(e.target.value)}
-                      placeholder="nap\u0159. Enetep, p.\u0160avel..."
+                      placeholder="např. Enetep, p.Šavel..."
                       style={s.input}
                     />
                   </div>
@@ -290,7 +290,7 @@ export default function ObligationsPage({ matrix, onUpdateCell, onOpenPropertyPr
                             <span style={{ color: T.accent, display: 'flex', flexShrink: 0 }}>{ICONS.doc}</span>
                             <div style={{ minWidth: 0 }}>
                               <div style={{ fontSize: 13, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{currentDoc.name}</div>
-                              <div style={{ fontSize: 11, color: T.textMuted }}>{fmtDate(currentDoc.date)} \u00b7 {currentDoc.size}</div>
+                              <div style={{ fontSize: 12, color: T.textMuted }}>{fmtDate(currentDoc.date)} · {currentDoc.size}</div>
                             </div>
                           </div>
                           <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
@@ -301,7 +301,7 @@ export default function ObligationsPage({ matrix, onUpdateCell, onOpenPropertyPr
                             <button style={{
                               background: T.green + '22', color: T.green, border: 'none',
                               borderRadius: 6, padding: '5px 8px', cursor: 'pointer', display: 'flex',
-                            }} title="St\u00e1hnout">{ICONS.download}</button>
+                            }} title="Stáhnout">{ICONS.download}</button>
                             <button onClick={() => handleDeleteDoc(currentDoc.id)} style={{
                               background: T.red + '22', color: T.red, border: 'none',
                               borderRadius: 6, padding: '5px 8px', cursor: 'pointer', display: 'flex',
@@ -311,7 +311,7 @@ export default function ObligationsPage({ matrix, onUpdateCell, onOpenPropertyPr
                       </div>
                     ) : (
                       <div style={{ color: T.textMuted, fontSize: 13, fontStyle: 'italic', marginBottom: 4 }}>
-                        \u017d\u00e1dn\u00fd dokument
+                        Žádný dokument
                       </div>
                     )}
                   </div>
@@ -326,34 +326,34 @@ export default function ObligationsPage({ matrix, onUpdateCell, onOpenPropertyPr
                       onMouseEnter={e => { e.currentTarget.style.background = T.accent + '11'; }}
                       onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
                     >
-                      {ICONS.upload} {currentDoc ? 'Nahr\u00e1t nov\u00fd (st\u00e1vaj\u00edc\u00ed \u2192 historie)' : 'Nahr\u00e1t dokument'}
+                      {ICONS.upload} {currentDoc ? 'Nahrát nový (stávající → historie)' : 'Nahrát dokument'}
                     </button>
                   ) : (
                     <div style={{
                       background: T.bg, borderRadius: 10, padding: 14, marginBottom: 16,
                       border: `1px solid ${T.accent}33`,
                     }}>
-                      <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 8 }}>Nahr\u00e1t nov\u00fd dokument</div>
+                      <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 8 }}>Nahrát nový dokument</div>
                       {currentDoc && (
                         <div style={{
-                          fontSize: 11, color: T.orange, marginBottom: 8, padding: '6px 8px',
+                          fontSize: 12, color: T.orange, marginBottom: 8, padding: '6px 8px',
                           background: T.orange + '11', borderRadius: 6,
                         }}>
-                          St\u00e1vaj\u00edc\u00ed \u201e{currentDoc.name}\u201c se p\u0159esune do historie.
+                          Stávající „{currentDoc.name}" se přesune do historie.
                         </div>
                       )}
                       <div style={{ marginBottom: 10 }}>
                         <input
                           value={uploadName}
                           onChange={e => setUploadName(e.target.value)}
-                          placeholder={`nap\u0159. Revize ${detail.revType} ${new Date().getFullYear()}.pdf`}
+                          placeholder={`např. Revize ${detail.revType} ${new Date().getFullYear()}.pdf`}
                           style={s.input}
                           autoFocus
                         />
                       </div>
                       <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                         <button onClick={() => fileRef.current?.click()} style={{
-                          ...s.btn(false), display: 'flex', alignItems: 'center', gap: 5, fontSize: 12,
+                          ...s.btn(false), display: 'flex', alignItems: 'center', gap: 5, fontSize: 13,
                           border: `1px dashed ${T.border}`,
                         }}>
                           {ICONS.folder} Soubor
@@ -365,10 +365,10 @@ export default function ObligationsPage({ matrix, onUpdateCell, onOpenPropertyPr
                           }}
                         />
                         <div style={{ flex: 1 }} />
-                        <button onClick={() => { setShowUpload(false); setUploadName(''); }} style={{ ...s.btn(false), fontSize: 12 }}>Zru\u0161it</button>
+                        <button onClick={() => { setShowUpload(false); setUploadName(''); }} style={{ ...s.btn(false), fontSize: 13 }}>Zrušit</button>
                         <button onClick={handleUploadDoc} style={{
-                          ...s.btn(true), fontSize: 12, opacity: uploadName.trim() ? 1 : 0.5,
-                        }}>Nahr\u00e1t</button>
+                          ...s.btn(true), fontSize: 13, opacity: uploadName.trim() ? 1 : 0.5,
+                        }}>Nahrát</button>
                       </div>
                     </div>
                   )}
@@ -379,7 +379,7 @@ export default function ObligationsPage({ matrix, onUpdateCell, onOpenPropertyPr
                       <button onClick={() => setShowHistory(!showHistory)} style={{
                         background: 'none', border: 'none', cursor: 'pointer', padding: 0,
                         display: 'flex', alignItems: 'center', gap: 6, width: '100%',
-                        fontSize: 12, fontWeight: 700, color: T.textDim, textTransform: 'uppercase', letterSpacing: '0.5px',
+                        fontSize: 13, fontWeight: 700, color: T.textDim, textTransform: 'uppercase', letterSpacing: '0.5px',
                         marginBottom: showHistory ? 10 : 0,
                       }}>
                         <span style={{ transition: 'transform .2s', transform: showHistory ? 'rotate(90deg)' : 'rotate(0)', display: 'inline-block' }}>&#9654;</span>
@@ -396,8 +396,8 @@ export default function ObligationsPage({ matrix, onUpdateCell, onOpenPropertyPr
                               <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}>
                                 <span style={{ color: T.textMuted, display: 'flex', flexShrink: 0 }}>{ICONS.doc}</span>
                                 <div style={{ minWidth: 0 }}>
-                                  <div style={{ fontSize: 12, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{doc.name}</div>
-                                  <div style={{ fontSize: 10, color: T.textMuted }}>{fmtDate(doc.date)} \u00b7 {doc.size}</div>
+                                  <div style={{ fontSize: 13, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{doc.name}</div>
+                                  <div style={{ fontSize: 11, color: T.textMuted }}>{fmtDate(doc.date)} · {doc.size}</div>
                                 </div>
                               </div>
                               <div style={{ display: 'flex', gap: 3, flexShrink: 0 }}>
@@ -408,7 +408,7 @@ export default function ObligationsPage({ matrix, onUpdateCell, onOpenPropertyPr
                                 <button style={{
                                   background: T.green + '22', color: T.green, border: 'none',
                                   borderRadius: 5, padding: '4px 6px', cursor: 'pointer', display: 'flex',
-                                }} title="St\u00e1hnout">{ICONS.download}</button>
+                                }} title="Stáhnout">{ICONS.download}</button>
                                 <button onClick={() => handleDeleteDoc(doc.id)} style={{
                                   background: T.red + '15', color: T.red, border: 'none',
                                   borderRadius: 5, padding: '4px 6px', cursor: 'pointer', display: 'flex',
@@ -429,8 +429,8 @@ export default function ObligationsPage({ matrix, onUpdateCell, onOpenPropertyPr
               padding: '16px 24px', borderTop: `1px solid ${T.border}`,
               display: 'flex', gap: 10, justifyContent: 'flex-end',
             }}>
-              <button onClick={closeDetail} style={{ ...s.btn(false), padding: '10px 20px' }}>Zav\u0159\u00edt</button>
-              <button onClick={handleSave} style={{ ...s.btn(true), padding: '10px 24px' }}>Ulo\u017eit</button>
+              <button onClick={closeDetail} style={{ ...s.btn(false), padding: '10px 20px' }}>Zavřít</button>
+              <button onClick={handleSave} style={{ ...s.btn(true), padding: '10px 24px' }}>Uložit</button>
             </div>
           </>
         )}
@@ -445,7 +445,7 @@ export default function ObligationsPage({ matrix, onUpdateCell, onOpenPropertyPr
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12, marginBottom: 20 }}>
         <SectionTitle>Povinnosti a revize</SectionTitle>
         <div style={{ display: 'flex', gap: 8 }}>
-          {[['matrix', 'Matice'], ['list', 'Seznam'], ['timeline', '\u010casov\u00e1 osa']].map(([k, l]) => (
+          {[['matrix', 'Matice'], ['list', 'Seznam'], ['timeline', 'Časová osa']].map(([k, l]) => (
             <button key={k} onClick={() => setView(k)} style={s.btn(view === k)}>{l}</button>
           ))}
         </div>
@@ -457,7 +457,7 @@ export default function ObligationsPage({ matrix, onUpdateCell, onOpenPropertyPr
           {/* Add column button */}
           <div style={{ padding: '12px 16px', borderBottom: `1px solid ${T.border}`, display: 'flex', justifyContent: 'flex-end' }}>
             <button onClick={() => setShowAddCol(true)} style={{ ...s.btn(true), display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', fontSize: 13 }}>
-              {ICONS.plus} P\u0159idat typ revize
+              {ICONS.plus} Přidat typ revize
             </button>
           </div>
 
@@ -489,8 +489,8 @@ export default function ObligationsPage({ matrix, onUpdateCell, onOpenPropertyPr
                           </svg>
                         </button>
                       </div>
-                      {rt.frequency && <div style={{ fontWeight: 500, fontSize: 11, color: T.textMuted, textTransform: 'uppercase', letterSpacing: '0.3px' }}>{rt.frequency}</div>}
-                      {rt.supplier && <div style={{ fontWeight: 500, fontSize: 11, color: T.cyan, marginTop: 2 }}>{rt.supplier}</div>}
+                      {rt.frequency && <div style={{ fontWeight: 500, fontSize: 12, color: T.textMuted, textTransform: 'uppercase', letterSpacing: '0.3px' }}>{rt.frequency}</div>}
+                      {rt.supplier && <div style={{ fontWeight: 500, fontSize: 12, color: T.cyan, marginTop: 2 }}>{rt.supplier}</div>}
                     </th>
                   ))}
                 </tr>
@@ -572,24 +572,24 @@ export default function ObligationsPage({ matrix, onUpdateCell, onOpenPropertyPr
           </div>
           <div style={{ padding: '14px 16px', borderTop: `1px solid ${T.border}`, display: 'flex', gap: 16, flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center' }}>
             <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
-              {[[T.red, 'Po term\u00ednu'], [T.orange, 'Do 30 dn\u00ed'], [T.yellow, 'Do 90 dn\u00ed'], [T.green, 'OK']].map(([c, l]) => (
-                <div key={l} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: T.textDim }}>
+              {[[T.red, 'Po termínu'], [T.orange, 'Do 30 dní'], [T.yellow, 'Do 90 dní'], [T.green, 'OK']].map(([c, l]) => (
+                <div key={l} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 13, color: T.textDim }}>
                   <div style={{ width: 12, height: 12, borderRadius: 3, background: c }} /> {l}
                 </div>
               ))}
             </div>
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: T.textDim }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, color: T.textDim }}>
                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={T.accent} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
                 </svg>
-                M\u00e1 dokument
+                Má dokument
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: T.textDim }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, color: T.textDim }}>
                 <span style={{ color: T.textMuted, fontSize: 13, fontWeight: 600, textDecoration: 'line-through', opacity: 0.5 }}>N/A</span> Nevztahuje se
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: T.textDim }}>
-                <span style={{ color: T.textMuted, fontSize: 16 }}>+</span> Klikni pro nastaven\u00ed
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, color: T.textDim }}>
+                <span style={{ color: T.textMuted, fontSize: 16 }}>+</span> Klikni pro nastavení
               </div>
             </div>
           </div>
@@ -603,7 +603,7 @@ export default function ObligationsPage({ matrix, onUpdateCell, onOpenPropertyPr
             <table style={s.table}>
               <thead><tr>
                 <th style={s.th}>Stav</th><th style={s.th}>Objekt</th><th style={s.th}>Typ revize</th>
-                <th style={s.th}>Dodavatel</th><th style={s.th}>Perioda</th><th style={s.th}>Term\u00edn</th><th style={s.th}>Zb\u00fdv\u00e1</th><th style={s.th}>Dokument</th>
+                <th style={s.th}>Dodavatel</th><th style={s.th}>Perioda</th><th style={s.th}>Termín</th><th style={s.th}>Zbývá</th><th style={s.th}>Dokument</th>
               </tr></thead>
               <tbody>
                 {allItems.map((it, i) => {
@@ -618,18 +618,18 @@ export default function ObligationsPage({ matrix, onUpdateCell, onOpenPropertyPr
                       <td style={s.td}><div style={{ width: 10, height: 10, borderRadius: '50%', background: color }} /></td>
                       <td style={{ ...s.td, fontWeight: 600 }}>{it.object}</td>
                       <td style={s.td}>{it.type}</td>
-                      <td style={{ ...s.td, color: T.cyan }}>{it.company || it.supplier || '\u2014'}</td>
-                      <td style={{ ...s.td, color: T.textDim }}>{it.period || '\u2014'}</td>
+                      <td style={{ ...s.td, color: T.cyan }}>{it.company || it.supplier || '—'}</td>
+                      <td style={{ ...s.td, color: T.textDim }}>{it.period || '—'}</td>
                       <td style={s.td}>{fmtDate(it.date)}</td>
                       <td style={{ ...s.td, color, fontWeight: 600 }}>{getRevLabel(it.date)}</td>
                       <td style={s.td}>
                         {hasDoc ? (
-                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: T.accent, fontSize: 12, fontWeight: 500 }}>
-                            {ICONS.doc} {it.docs[0].name.length > 25 ? it.docs[0].name.slice(0, 23) + '\u2026' : it.docs[0].name}
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: T.accent, fontSize: 13, fontWeight: 500 }}>
+                            {ICONS.doc} {it.docs[0].name.length > 25 ? it.docs[0].name.slice(0, 23) + '…' : it.docs[0].name}
                             {it.docs.length > 1 && <span style={s.tag(T.textMuted)}>+{it.docs.length - 1}</span>}
                           </span>
                         ) : (
-                          <span style={{ color: T.textMuted, fontSize: 12 }}>\u2014</span>
+                          <span style={{ color: T.textMuted, fontSize: 13 }}>—</span>
                         )}
                       </td>
                     </tr>
@@ -646,7 +646,7 @@ export default function ObligationsPage({ matrix, onUpdateCell, onOpenPropertyPr
         <div>
           {timeline.map(([month, items]) => {
             const [y, m] = month.split('-');
-            const monthNames = ['', 'Leden', '\u00danor', 'B\u0159ezen', 'Duben', 'Kv\u011bten', '\u010cerven', '\u010cervenec', 'Srpen', 'Z\u00e1\u0159\u00ed', '\u0158\u00edjen', 'Listopad', 'Prosinec'];
+            const monthNames = ['', 'Leden', 'Únor', 'Březen', 'Duben', 'Květen', 'Červen', 'Červenec', 'Srpen', 'Září', 'Říjen', 'Listopad', 'Prosinec'];
             const label = `${monthNames[parseInt(m)]} ${y}`;
             const isPast = new Date(y, parseInt(m) - 1, 28) < new Date();
             return (
@@ -690,35 +690,35 @@ export default function ObligationsPage({ matrix, onUpdateCell, onOpenPropertyPr
       {/* Add column modal */}
       {showAddCol && (
         <Modal onClose={() => setShowAddCol(false)}>
-          <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 20, color: T.text }}>Nov\u00fd typ revize</h3>
+          <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 20, color: T.text }}>Nový typ revize</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             <div>
-              <FieldLabel>N\u00e1zev *</FieldLabel>
-              <input value={addColForm.name} onChange={e => setAddColForm({ ...addColForm, name: e.target.value })} placeholder="nap\u0159. EPS" style={s.input} autoFocus />
+              <FieldLabel>Název *</FieldLabel>
+              <input value={addColForm.name} onChange={e => setAddColForm({ ...addColForm, name: e.target.value })} placeholder="např. EPS" style={s.input} autoFocus />
             </div>
             <div>
               <FieldLabel>Frekvence</FieldLabel>
               <select value={addColForm.frequency} onChange={e => setAddColForm({ ...addColForm, frequency: e.target.value })} style={{ ...s.input, cursor: 'pointer' }}>
                 {FREQUENCY_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-                <option value="custom">Vlastn\u00ed...</option>
+                <option value="custom">Vlastní...</option>
               </select>
               {addColForm.frequency === 'custom' && (
                 <input
                   value=""
                   onChange={e => setAddColForm({ ...addColForm, frequency: e.target.value })}
-                  placeholder="nap\u0159. 1\u00d76let"
+                  placeholder="např. 1×6let"
                   style={{ ...s.input, marginTop: 8 }}
                 />
               )}
             </div>
             <div>
               <FieldLabel>Firma</FieldLabel>
-              <input value={addColForm.supplier} onChange={e => setAddColForm({ ...addColForm, supplier: e.target.value })} placeholder="nap\u0159. Enetep" style={s.input} />
+              <input value={addColForm.supplier} onChange={e => setAddColForm({ ...addColForm, supplier: e.target.value })} placeholder="např. Enetep" style={s.input} />
             </div>
           </div>
           <div style={{ display: 'flex', gap: 10, marginTop: 24, justifyContent: 'flex-end' }}>
-            <button onClick={() => setShowAddCol(false)} style={{ ...s.btn(false), padding: '10px 20px' }}>Zru\u0161it</button>
-            <button onClick={handleAddCol} style={{ ...s.btn(true), padding: '10px 20px', opacity: addColForm.name.trim() ? 1 : 0.5 }}>P\u0159idat</button>
+            <button onClick={() => setShowAddCol(false)} style={{ ...s.btn(false), padding: '10px 20px' }}>Zrušit</button>
+            <button onClick={handleAddCol} style={{ ...s.btn(true), padding: '10px 20px', opacity: addColForm.name.trim() ? 1 : 0.5 }}>Přidat</button>
           </div>
         </Modal>
       )}
@@ -726,10 +726,10 @@ export default function ObligationsPage({ matrix, onUpdateCell, onOpenPropertyPr
       {/* Confirm delete column */}
       {confirmDeleteCol && (
         <Modal onClose={() => setConfirmDeleteCol(null)} width={400}>
-          <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 12, color: T.red }}>Smazat sloupec \u201e{confirmDeleteCol}\u201c?</h3>
-          <p style={{ color: T.textDim, fontSize: 13, marginBottom: 20 }}>Tato akce sma\u017ee sloupec ze v\u0161ech nemovitost\u00ed v\u010detn\u011b v\u0161ech dat a dokument\u016f. Tato akce je nevratn\u00e1.</p>
+          <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 12, color: T.red }}>Smazat sloupec „{confirmDeleteCol}"?</h3>
+          <p style={{ color: T.textDim, fontSize: 13, marginBottom: 20 }}>Tato akce smaže sloupec ze všech nemovitostí včetně všech dat a dokumentů. Tato akce je nevratná.</p>
           <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-            <button onClick={() => setConfirmDeleteCol(null)} style={{ ...s.btn(false), padding: '10px 20px' }}>Zru\u0161it</button>
+            <button onClick={() => setConfirmDeleteCol(null)} style={{ ...s.btn(false), padding: '10px 20px' }}>Zrušit</button>
             <button onClick={() => handleDeleteCol(confirmDeleteCol)} style={{ ...s.btn(true), padding: '10px 20px', background: T.red }}>Smazat</button>
           </div>
         </Modal>

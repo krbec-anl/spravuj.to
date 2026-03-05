@@ -105,9 +105,8 @@ function AppInner() {
   const openPropertyProfileByName = useCallback((name) => {
     const match = properties.find(p => name.toLowerCase().includes(p.name.toLowerCase().split(' ')[0]) && p.name.toLowerCase().split(' ')[0].length > 2);
     if (match) {
-      setPanelPropertyId(match.id);
-    } else {
-      setPanelPropertyId(name);
+      setProfilePropertyId(match.id);
+      setPage('propertyProfile');
     }
   }, [properties]);
 

@@ -49,19 +49,19 @@ export default function PropertiesPage({ properties, onOpenProfile, onAddPropert
             <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 20, color: T.text }}>Nová nemovitost</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               <div>
-                <label style={{ fontSize: 11, color: T.textMuted, display: 'block', marginBottom: 4 }}>Název *</label>
+                <label style={{ fontSize: 13, color: T.textMuted, display: 'block', marginBottom: 4 }}>Název *</label>
                 <input value={addForm.name} onChange={e => setAddForm({ ...addForm, name: e.target.value })} placeholder="např. Tyršova 1872" style={s.input} />
               </div>
               <div>
-                <label style={{ fontSize: 11, color: T.textMuted, display: 'block', marginBottom: 4 }}>Adresa *</label>
+                <label style={{ fontSize: 13, color: T.textMuted, display: 'block', marginBottom: 4 }}>Adresa *</label>
                 <input value={addForm.address} onChange={e => setAddForm({ ...addForm, address: e.target.value })} placeholder="např. Tyršova 1872, Žatec" style={s.input} />
               </div>
               <div>
-                <label style={{ fontSize: 11, color: T.textMuted, display: 'block', marginBottom: 4 }}>Město *</label>
+                <label style={{ fontSize: 13, color: T.textMuted, display: 'block', marginBottom: 4 }}>Město *</label>
                 <input value={addForm.city} onChange={e => setAddForm({ ...addForm, city: e.target.value })} placeholder="např. Žatec" style={s.input} />
               </div>
               <div>
-                <label style={{ fontSize: 11, color: T.textMuted, display: 'block', marginBottom: 4 }}>Vlastnictví *</label>
+                <label style={{ fontSize: 13, color: T.textMuted, display: 'block', marginBottom: 4 }}>Vlastnictví *</label>
                 <select value={addForm.ownership} onChange={e => setAddForm({ ...addForm, ownership: e.target.value })} style={{ ...s.input, cursor: 'pointer' }}>
                   <option value="own">Vlastní</option>
                   <option value="foreign">Cizí</option>
@@ -69,7 +69,7 @@ export default function PropertiesPage({ properties, onOpenProfile, onAddPropert
               </div>
               {addForm.ownership === 'foreign' && (
                 <div>
-                  <label style={{ fontSize: 11, color: T.textMuted, display: 'block', marginBottom: 4 }}>Vlastník (jméno) *</label>
+                  <label style={{ fontSize: 13, color: T.textMuted, display: 'block', marginBottom: 4 }}>Vlastník (jméno) *</label>
                   <input value={addForm.owner} onChange={e => setAddForm({ ...addForm, owner: e.target.value })} placeholder="např. Ing. Novák" style={s.input} />
                 </div>
               )}
@@ -102,11 +102,11 @@ export default function PropertiesPage({ properties, onOpenProfile, onAddPropert
                   {p.ownership === 'own' ? 'Vlastní' : 'Cizí'}
                 </span>
               </div>
-              {p.ownership === 'foreign' && <div style={{ color: T.textDim, fontSize: 12, marginBottom: 8 }}>Vlastník: {p.owner}</div>}
+              {p.ownership === 'foreign' && <div style={{ color: T.textDim, fontSize: 13, marginBottom: 8 }}>Vlastník: {p.owner}</div>}
               <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: `1px solid ${T.border}`, paddingTop: 12, marginTop: 4 }}>
-                <div><div style={{ fontSize: 11, color: T.textMuted }}>Bytů</div><div style={{ fontWeight: 600 }}>{occ}/{p.totalUnits}</div></div>
-                <div><div style={{ fontSize: 11, color: T.textMuted }}>Obsazenost</div><div style={{ fontWeight: 600, color: T.green }}>{((occ / p.totalUnits) * 100).toFixed(0)}%</div></div>
-                <div><div style={{ fontSize: 11, color: T.textMuted }}>Příjem/měs</div><div style={{ fontWeight: 600, color: T.cyan }}>{fmtCZK(p.monthlyIncome)}</div></div>
+                <div><div style={{ fontSize: 13, color: T.textMuted }}>Bytů</div><div style={{ fontWeight: 600 }}>{occ}/{p.totalUnits}</div></div>
+                <div><div style={{ fontSize: 13, color: T.textMuted }}>Obsazenost</div><div style={{ fontWeight: 600, color: T.green }}>{((occ / p.totalUnits) * 100).toFixed(0)}%</div></div>
+                <div><div style={{ fontSize: 13, color: T.textMuted }}>Příjem/měs</div><div style={{ fontWeight: 600, color: T.cyan }}>{fmtCZK(p.monthlyIncome)}</div></div>
               </div>
             </div>
           );

@@ -28,26 +28,26 @@ export default function OwnerPortalPage({ properties }) {
                 <div style={{ color: T.textDim, fontSize: 13 }}>{p.address}</div>
               </div>
               <div style={{ textAlign: 'right' }}>
-                <div style={{ fontSize: 12, color: T.textMuted }}>Vlastník</div>
+                <div style={{ fontSize: 13, color: T.textMuted }}>Vlastník</div>
                 <div style={{ fontSize: 15, fontWeight: 600, color: T.purple }}>{p.owner}</div>
               </div>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12, marginBottom: 16 }}>
               <div style={{ background: isDark ? T.bg : T.border + '33', borderRadius: 8, padding: 12 }}>
-                <div style={{ fontSize: 11, color: T.textMuted }}>Obsazenost</div>
+                <div style={{ fontSize: 13, color: T.textMuted }}>Obsazenost</div>
                 <div style={{ fontSize: 20, fontWeight: 700, color: T.green }}>{occ}/{p.totalUnits}</div>
               </div>
               <div style={{ background: isDark ? T.bg : T.border + '33', borderRadius: 8, padding: 12 }}>
-                <div style={{ fontSize: 11, color: T.textMuted }}>Příjem/měs</div>
+                <div style={{ fontSize: 13, color: T.textMuted }}>Příjem/měs</div>
                 <div style={{ fontSize: 20, fontWeight: 700, color: T.cyan }}>{fmtCZK(income)}</div>
               </div>
               <div style={{ background: isDark ? T.bg : T.border + '33', borderRadius: 8, padding: 12 }}>
-                <div style={{ fontSize: 11, color: T.textMuted }}>Správcovský popl.</div>
+                <div style={{ fontSize: 13, color: T.textMuted }}>Správcovský popl.</div>
                 <div style={{ fontSize: 20, fontWeight: 700, color: T.purple }}>{fmtCZK(fee)}</div>
               </div>
               <div style={{ background: isDark ? T.bg : T.border + '33', borderRadius: 8, padding: 12 }}>
-                <div style={{ fontSize: 11, color: T.textMuted }}>Čistý výnos</div>
+                <div style={{ fontSize: 13, color: T.textMuted }}>Čistý výnos</div>
                 <div style={{ fontSize: 20, fontWeight: 700 }}>{fmtCZK(income - fee)}</div>
               </div>
             </div>
@@ -65,7 +65,7 @@ export default function OwnerPortalPage({ properties }) {
             )}
 
             <div style={{ overflowX: 'auto' }}>
-              <table style={{ ...s.table, fontSize: 12 }}>
+              <table style={{ ...s.table, fontSize: 14 }}>
                 <thead><tr>
                   <th style={s.th}>Byt</th><th style={s.th}>Typ</th><th style={s.th}>Nájemník</th>
                   <th style={s.th}>Nájemné</th><th style={s.th}>Stav</th>

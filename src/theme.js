@@ -82,7 +82,7 @@ function makeStyles(T, isDark) {
     th: {
       textAlign: 'left', padding: '14px 16px',
       borderBottom: `2px solid ${T.border}`,
-      color: T.textDim, fontWeight: 600, fontSize: 12,
+      color: T.textDim, fontWeight: 600, fontSize: 13,
       textTransform: 'uppercase', letterSpacing: '0.5px',
     },
     td: { padding: '14px 16px', borderBottom: `1px solid ${T.border}22`, height: 52 },

@@ -174,17 +174,17 @@ export const OBL_OBJECTS = [
 ];
 
 export const REV_TYPES = [
-  { name: 'Komín', period: '1\u00d7rok', supplier: 'Enetep' },
-  { name: 'Hromosvod', period: '1\u00d74roky', supplier: 'Enetep' },
-  { name: 'Elektro spot\u0159.', period: '1\u00d7rok', supplier: 'p.\u0160avel' },
-  { name: 'Hasic\u00ed p\u0159\u00edstr.', period: '1\u00d7rok', supplier: 'p.Kulhav\u00fd' },
+  { name: 'Komín', period: '1×rok', supplier: 'Enetep' },
+  { name: 'Hromosvod', period: '1×4roky', supplier: 'Enetep' },
+  { name: 'Elektro spotř.', period: '1×rok', supplier: 'p.Šavel' },
+  { name: 'Hasicí přístr.', period: '1×rok', supplier: 'p.Kulhavý' },
   { name: 'Plyn', period: '', supplier: 'Enetep' },
   { name: 'Kotle', period: '', supplier: 'Enetep' },
-  { name: 'Reg\u00e1ly', period: '1\u00d7rok', supplier: 'FL' },
+  { name: 'Regály', period: '1×rok', supplier: 'FL' },
   { name: 'Proj. dok.', period: '', supplier: '' },
   { name: 'Proj.dok. elektro', period: '', supplier: '' },
-  { name: 'Elektro budovy', period: '1\u00d75let', supplier: '' },
-  { name: 'PB\u0158', period: '', supplier: '' },
+  { name: 'Elektro budovy', period: '1×5let', supplier: '' },
+  { name: 'PBŘ', period: '', supplier: '' },
 ];
 
 // ---------- MATRIX DATA MODEL ----------
