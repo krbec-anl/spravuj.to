@@ -32,3 +32,5 @@ prisma/dev.db-journal
 
 # IDE
 .vscode/
+.vercel
+.env*.local
