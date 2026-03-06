@@ -7,7 +7,7 @@ import {
   INITIAL_PROPERTIES, INITIAL_MATRIX, INITIAL_DOCUMENTS,
   NAV_SECTIONS, NAV_FLAT, REV_TYPES as INITIAL_REV_TYPES, OBL_OBJECTS,
 } from './data/mockData';
-const APP_VERSION = '0.6.0';
+const APP_VERSION = '0.6.1';
 
 import Dashboard from './components/Dashboard';
 import PropertiesPage from './components/PropertiesPage';
